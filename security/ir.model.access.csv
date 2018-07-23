@@ -1,2 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-account.access_account_journal_invoice,"account.journal invoice",account.model_account_journal,account.group_account_invoice,1,1,,
+access_dgii_report_config_invoice,access_dgii_report_config,model_dgii_report,account.group_account_invoice,1,1,1,1
+access_dgii_report_purchase_line,access_dgii_report_purchase_line,model_dgii_report_purchase_line,account.group_account_invoice,1,1,1,1
+access_dgii_report_sale_line,access_dgii_report_sale_line,model_dgii_report_sale_line,account.group_account_invoice,1,1,1,1
+access_dgii_cancel_report_line,access_dgii_cancel_report_line,model_dgii_cancel_report_line,account.group_account_invoice,1,1,1,1
+access_dgii_exterior_report_line,access_dgii_exterior_report_line,model_dgii_exterior_report_line,account.group_account_invoice,1,1,1,1
