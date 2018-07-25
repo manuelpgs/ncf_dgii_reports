@@ -66,6 +66,7 @@ class DgiiReport(models.Model):
     @api.depends("purchase_report")
     def _purchase_report_totals(self):
 
+        # Tipos de NCFs
         summary_dict = {
             "01": {"count": 0, "amount": 0.0},
             "02": {"count": 0, "amount": 0.0},
@@ -1005,8 +1006,8 @@ class DgiiReportPurchaseLine(models.Model):
     RETENCION_RENTA = fields.Float(u"Retención Renta")
 
     invoice_id = fields.Many2one("account.invoice", "NCF")
-    number = fields.Char(related="invoice_id.number", string=" NCF")
-    inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="Relacionado")
+    number = fields.Char(related="invoice_id.number", string=" NCF") #todo validate to remove
+    inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="Relacionado") #todo validate to remove
     affected_nvoice_id = fields.Many2one("account.invoice", "Afecta")
     nc = fields.Boolean()
 
@@ -1028,10 +1029,10 @@ class DgiiReportSaleLine(models.Model):
     invoice_id = fields.Many2one("account.invoice", "NCF")
     currency_id = fields.Many2one('res.currency', string='Currency', related="invoice_id.currency_id",
                                   required=True, readonly=True, states={'draft': [('readonly', False)]},
-                                  track_visibility='always')
+                                  track_visibility='always') #todo validate to remove
 
-    number = fields.Char(related="invoice_id.number", string=" NCF")
-    inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="Relacionado")
+    number = fields.Char(related="invoice_id.number", string=" NCF") #todo validate to remove
+    inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="Relacionado") #todo validate to remove
     affected_nvoice_id = fields.Many2one("account.invoice", "Afecta")
     nc = fields.Boolean()
 
