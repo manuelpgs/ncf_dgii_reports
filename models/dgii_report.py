@@ -199,9 +199,9 @@ class DgiiReport(models.Model):
             rec.CANCEL_CANTIDAD_REGISTRO = rec.cancel_report and len(rec.cancel_report)
             rec.EXTERIOR_CANTIDAD_REGISTRO = rec.exterior_filename and len(rec.exterior_report)
 
-    company_id = fields.Many2one('res.company', 'Company', required=False,
+    company_id = fields.Many2one('res.company', 'EMPRESA', required=False,
                                  default=lambda self: self.env.user.company_id)
-    name = fields.Char(string=u"Período MES/AÑO", required=True, unique=True, index=True)
+    name = fields.Char(string=u"PERÍODO MES/AÑO", required=True, unique=True, index=True)
     positive_balance = fields.Float(u"SALDO A FAVOR ANTERIOR", required=True)
 
     it_filename = fields.Char()

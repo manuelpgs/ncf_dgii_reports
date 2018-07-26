@@ -18,14 +18,17 @@
                         <field name="state" widget="statusbar" clickable="0"/>
                     </header>
                     <sheet string="Declaraciones">
-                        <group>
-                            <group>
+                        <group style="width: 100%">
+                            <group style="width: 100%">
                                 <field name="company_id" readonly="1"/>
                                 <field name="name" widget="mask" data-inputmask="'mask': '99/9999'"/>
                                 <field name="positive_balance"/>
                             </group>
 
                             <div class="separator"></div>
+
+                            <group style="width: 100%"> <hr /> </group>
+
                             <group style="width: 100%">
                                 <table class="table table-striped table-bordered table-condensed">
                                     <tr>
