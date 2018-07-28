@@ -14,7 +14,7 @@
             <field name="arch" type="xml">
                 <form string="Declaraciones">
                     <header>
-                        <button name="generate_report" string="Generar declaraciones" type="object" class="oe_highlight" />
+                        <button name="generate_report" string="Generar Declaraciones" type="object" class="oe_highlight" />
                         <field name="state" widget="statusbar" clickable="0"/>
                     </header>
                     <sheet string="Declaraciones">
@@ -112,13 +112,13 @@
                                         </th>
                                     </tr>
                                     <tr class="info">
-                                        <th class="tg-yw4l">COMPRADO</th>
+                                        <th class="tg-yw4l">MONTO TOTAL FACTURADO</th>
                                         <td class="text-center">
                                             <field name="TOTAL_MONTO_FACTURADO"/>
                                         </td>
                                     </tr>
                                     <tr class="info">
-                                        <th class="tg-yw4l">ITBIS COMPRADO</th>
+                                        <th class="tg-yw4l">ITBIS TOTAL EN COMPRAS</th>
                                         <td class="text-center">
                                             <field name="ITBIS_TOTAL"/>
                                         </td>
@@ -157,6 +157,12 @@
                                         <th class="tg-yw4l">RETENCIÓN RENTA</th>
                                         <td class="text-center">
                                             <field name="RETENCION_RENTA"/>
+                                        </td>
+                                    </tr>
+                                    <tr class="danger">
+                                        <th class="tg-yw4l">ITBIS PAGADO EN BIENES</th>
+                                        <td class="text-center">
+                                            <field name="ITBIS_FACTURADO_BIENES"/>
                                         </td>
                                     </tr>
                                     <tr class="danger">
@@ -413,7 +419,7 @@
                                         <field name="NUMERO_COMPROBANTE_MODIFICADO"/>
                                         <field name="FECHA_COMPROBANTE"/>
                                         <field name="FECHA_PAGO"/>
-                                        <field name="ITBIS_FACTURADO" sum="Total ITBIS Facturado"/>
+                                        <field name="ITBIS_FACTURADO_TOTAL" sum="Total ITBIS Facturado"/>
                                         <field name="ITBIS_RETENIDO" sum="Total ITBIS Retenido"/>
                                         <field name="MONTO_FACTURADO" sum="Total Monto Facturado"/>
                                         <field name="RETENCION_RENTA" sum="Total ITBIS Facturado"/>

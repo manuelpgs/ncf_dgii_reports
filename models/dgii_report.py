@@ -37,8 +37,8 @@
 ########################################################################################################################
 
 from odoo import models, fields, api, exceptions
-# from var_dump import var_dump
-# from pprint import pprint as pp
+from var_dump import var_dump
+from pprint import pprint as pp
 
 from openpyxl import load_workbook
 import base64
@@ -66,7 +66,8 @@ class DgiiReport(models.Model):
     @api.depends("purchase_report")
     def _purchase_report_totals(self):
 
-        # Tipos de NCFs
+        # Tipos de Bienes y Servicios Comprados
+        # Columna 3 del 606
         summary_dict = {
             "01": {"count": 0, "amount": 0.0},
             "02": {"count": 0, "amount": 0.0},
@@ -81,7 +82,7 @@ class DgiiReport(models.Model):
             "11": {"count": 0, "amount": 0.0},
         }
 
-        for rec in self:
+        for rec in self: #self  = lines on model DgiiReportPurchaseLine
             rec.ITBIS_TOTAL = 0
             rec.ITBIS_TOTAL_NC = 0
             rec.ITBIS_TOTAL_PAYMENT = 0
@@ -92,6 +93,7 @@ class DgiiReport(models.Model):
 
             rec.ITBIS_RETENIDO = 0
             rec.RETENCION_RENTA = 0
+            rec.ITBIS_FACTURADO_BIENES = 0
             rec.ITBIS_FACTURADO_SERVICIOS = 0
 
             for purchase in rec.purchase_report:
@@ -99,17 +101,19 @@ class DgiiReport(models.Model):
                 TIPO_COMPROBANTE = self.getTipoComprobante(purchase)
 
                 if TIPO_COMPROBANTE == "04":
-                    rec.ITBIS_TOTAL_NC += purchase.ITBIS_FACTURADO
+                    rec.ITBIS_TOTAL_NC += purchase.ITBIS_FACTURADO_TOTAL
                     rec.TOTAL_MONTO_NC += purchase.MONTO_FACTURADO
                     rec.RETENCION_RENTA -= purchase.RETENCION_RENTA
                     rec.ITBIS_RETENIDO -= purchase.ITBIS_RETENIDO
                     rec.ITBIS_FACTURADO_SERVICIOS -= purchase.ITBIS_FACTURADO_SERVICIOS
+                    rec.ITBIS_FACTURADO_BIENES -= purchase.ITBIS_FACTURADO_BIENES #TODO validate if this line is necessary
                 elif purchase.NUMERO_COMPROBANTE_MODIFICADO == False:
-                    rec.ITBIS_TOTAL += purchase.ITBIS_FACTURADO
+                    rec.ITBIS_TOTAL += purchase.ITBIS_FACTURADO_TOTAL
                     rec.TOTAL_MONTO_FACTURADO += purchase.MONTO_FACTURADO
                     rec.RETENCION_RENTA += purchase.RETENCION_RENTA
                     rec.ITBIS_RETENIDO += purchase.ITBIS_RETENIDO
                     rec.ITBIS_FACTURADO_SERVICIOS += purchase.ITBIS_FACTURADO_SERVICIOS
+                    rec.ITBIS_FACTURADO_BIENES += purchase.ITBIS_FACTURADO_BIENES
 
                 summary_dict[purchase.invoice_id.expense_type]["count"] += 1
                 summary_dict[purchase.invoice_id.expense_type]["amount"] += purchase.MONTO_FACTURADO
@@ -145,6 +149,7 @@ class DgiiReport(models.Model):
     @api.depends("sale_report")
     def _sale_report_totals(self):
 
+        # Tipos de NCFs by name
         summary_dict = {
             "final": {"count": 0, "amount": 0.0},
             "fiscal": {"count": 0, "amount": 0.0},
@@ -152,6 +157,7 @@ class DgiiReport(models.Model):
             "special": {"count": 0, "amount": 0.0},
             "unico": {"count": 0, "amount": 0.0},
         }
+
         for rec in self:
             rec.SALE_ITBIS_TOTAL = 0
             rec.SALE_ITBIS_NC = 0
@@ -165,7 +171,7 @@ class DgiiReport(models.Model):
                 if sale.NUMERO_COMPROBANTE_FISCAL[9:-8] == "04":
                     rec.SALE_ITBIS_NC += sale.ITBIS_FACTURADO
                     rec.SALE_TOTAL_MONTO_NC += sale.MONTO_FACTURADO
-                    # TODO falta manejar las notas de credito que afectan facturas de otro periodo.
+                    #TODO falta manejar las notas de credito que afectan facturas de otro periodo.
                     rec.MONTO_FACTURADO_EXCENTO -= sale.MONTO_FACTURADO_EXCENTO
                 else:
                     rec.SALE_ITBIS_TOTAL += sale.ITBIS_FACTURADO
@@ -224,7 +230,8 @@ class DgiiReport(models.Model):
 
     ITBIS_RETENIDO = fields.Float(u"ITBIS Retenido", compute=_purchase_report_totals)
     RETENCION_RENTA = fields.Float(u"Retención Renta", compute=_purchase_report_totals)
-    ITBIS_FACTURADO_SERVICIOS = fields.Float(u"ITBIS Facturado servicios", compute=_purchase_report_totals)
+    ITBIS_FACTURADO_SERVICIOS = fields.Float(u"ITBIS Facturado Servicios", compute=_purchase_report_totals)
+    ITBIS_FACTURADO_BIENES = fields.Float(u"ITBIS Facturado Bienes", compute=_purchase_report_totals)
 
     purchase_report = fields.One2many(u"dgii.report.purchase.line", "dgii_report_id")
     purchase_filename = fields.Char()
@@ -244,6 +251,7 @@ class DgiiReport(models.Model):
     pcount_09 = fields.Integer(compute=_purchase_report_totals)
     pcount_10 = fields.Integer(compute=_purchase_report_totals)
     pcount_11 = fields.Integer(compute=_purchase_report_totals)
+
     pamount_01 = fields.Monetary(compute=_purchase_report_totals)
     pamount_02 = fields.Monetary(compute=_purchase_report_totals)
     pamount_03 = fields.Monetary(compute=_purchase_report_totals)
@@ -317,7 +325,7 @@ class DgiiReport(models.Model):
 
     ''''
         With this method they want get all invoices paid in a period of time
-        and use them in the report of the current month (start and end date given).
+        and use them in the report of the current month (period: start and end date given).
         But, acording with some accountants, this should be only valid for invoices
         with retention of ITBIS and ISR and of kind "Informal", which means that
         don't matter if the NCF is issued by the provider or by the company requiring
@@ -362,11 +370,7 @@ class DgiiReport(models.Model):
 
     def validate_fiscal_information(self, vat, invoice):
 
-        # api_marcos = self.env["marcos.api.tools"]
-
         error_list = []
-        # rnc.check_dgii(term)
-        # if vat and not api_marcos.is_identification(vat):
 
         if invoice.type == 'out_invoice':
             vat = invoice.company_id.vat
@@ -377,7 +381,6 @@ class DgiiReport(models.Model):
         if vat and len(vat) == 11 and not cedula.is_valid(vat):
             error_list.append(u"La Cédula no es válida")
 
-        # if not api_marcos.is_ncf(ncf, invoice_type):
         if not ncf.is_valid(invoice.number) or not ncf.check_dgii(vat, invoice.number):
             error_list.append(u"El NCF no es válido.  RNC: %s y tipo de Factura: %s" % (vat, invoice.type))
 
@@ -469,7 +472,7 @@ class DgiiReport(models.Model):
     @api.multi
     def create_purchase_lines(self, data):
         dataText = ','.join(
-            self.env.cr.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', row) for row in data)
+            self.env.cr.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', row) for row in data)
 
         purchase_insert_sql = """
                             INSERT INTO dgii_report_purchase_line ("dgii_report_id",
@@ -481,13 +484,14 @@ class DgiiReport(models.Model):
                             "FECHA_COMPROBANTE",
                             "FECHA_PAGO",
                             "TIPO_BIENES_SERVICIOS_COMPRADOS",
-                            "ITBIS_FACTURADO",
+                            "ITBIS_FACTURADO_TOTAL",
                             "ITBIS_RETENIDO",
                             "MONTO_FACTURADO",
                             "RETENCION_RENTA"
                             ,"invoice_id",
                             "affected_nvoice_id",
                             "nc",
+                            "ITBIS_FACTURADO_BIENES",
                             "ITBIS_FACTURADO_SERVICIOS") values {}
                             """.format(dataText)
         self.env.cr.execute(purchase_insert_sql)
@@ -559,6 +563,7 @@ class DgiiReport(models.Model):
         journal_ids = self.env["account.journal"].search(
             ['|', ('ncf_control', '=', True), ('ncf_remote_validation', '=', True)])
 
+        # searching invoices to this period
         invoice_ids = self.env["account.invoice"].search(
             [('date_invoice', '>=', start_date), ('date_invoice', '<=', end_date),
              ('journal_id', 'in', journal_ids.ids)])
@@ -597,8 +602,7 @@ class DgiiReport(models.Model):
             NUMERO_COMPROBANTE_MODIFICADO = AFFECTED_NVOICE_ID = False
 
             if invoice_id.type in ("out_refund", "in_refund"):
-                NUMERO_COMPROBANTE_MODIFICADO, AFFECTED_NVOICE_ID = self.get_numero_de_comprobante_modificado(
-                    invoice_id)
+                NUMERO_COMPROBANTE_MODIFICADO, AFFECTED_NVOICE_ID = self.get_numero_de_comprobante_modificado(invoice_id)
 
             FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = False
 
@@ -623,13 +627,20 @@ class DgiiReport(models.Model):
                 "nc": True if AFFECTED_NVOICE_ID else False,
                 "MONTO_FACTURADO_EXCENTO": 0,
                 "MONTO_FACTURADO": 0,
-                "ITBIS_FACTURADO": 0,
+                "ITBIS_FACTURADO": 0, # used in 607 report as total
+                "ITBIS_FACTURADO_TOTAL": 0, # used in 606 report
                 "ITBIS_FACTURADO_SERVICIOS": 0,
+                "ITBIS_FACTURADO_BIENES": 0,
                 "ITBIS_RETENIDO": ITBIS_RETENIDO and ITBIS_RETENIDO or 0,
                 "RETENCION_RENTA": RETENCION_RENTA and RETENCION_RENTA or 0,
                 "TIPO_BIENES_SERVICIOS_COMPRADOS": invoice_id.expense_type
             }
 
+            # if invoice_id.number == 'B0100181329':
+            #     _logger.warning('invoice_id.invoice_line_ids %s', invoice_id.invoice_line_ids)
+
+            # invoice_line_ids is the related table: account_invoice_line; this table has invoice_id column
+            # invoice_line_tax_ids is the related table: account_invoice_line_tax; this table has invoice_line_id column that reference to account_invoice_line
             no_tax_line = invoice_id.invoice_line_ids.filtered(lambda x: not x.invoice_line_tax_ids)
 
             if no_tax_line:
@@ -672,7 +683,7 @@ class DgiiReport(models.Model):
 
             taxed_lines = invoice_id.invoice_line_ids.filtered(lambda x: x.invoice_line_tax_ids[0].id not in untax_ids)
 
-            taxed_lines_name = [rec.product_id.id for rec in taxed_lines]
+            taxed_lines_name = [rec.product_id.id for rec in taxed_lines] # return array of ids de products
 
             if commun_data["MONTO_FACTURADO_EXCENTO"]:
                 taxed_lines_amount = self.env["account.move.line"].search(
@@ -690,7 +701,7 @@ class DgiiReport(models.Model):
 
             commun_data["MONTO_FACTURADO"] += commun_data["MONTO_FACTURADO_EXCENTO"]
 
-            for tax in invoice_id.tax_line_ids:
+            for tax in invoice_id.tax_line_ids: # those are ids on the table: account_invoice_tax
                 tax_base_amount = commun_data["MONTO_FACTURADO"]
                 untax_base_amount = commun_data["MONTO_FACTURADO_EXCENTO"]
 
@@ -701,11 +712,19 @@ class DgiiReport(models.Model):
                     tax_amount = self.env.user.company_id.currency_id.round(
                         sum(abs(rec.debit - rec.credit) for rec in tax_line))
 
-                    if tax.tax_id.type_tax_use == "sale" or (
-                            tax.tax_id.type_tax_use == "purchase" and tax.tax_id.purchase_tax_type in ("itbis")):
-                        commun_data["ITBIS_FACTURADO"] += tax_amount
+                    if invoice_id.number == 'B0100181329':
+                        _logger.warning('**** tax_amount %s', tax_amount)
+                        _logger.warning('**** tax.tax_id.type_tax_use %s', tax.tax_id.type_tax_use)
+                        _logger.warning('**** tax.tax_id.purchase_tax_type %s', tax.tax_id.purchase_tax_type)
+                        _logger.warning('**** tax.tax_id.account_id.code %s', tax.tax_id.account_id.code)
 
-                    if tax.tax_id.type_tax_use == "purchase" and tax.tax_id.purchase_tax_type == "itbis_servicio":
+                    # if tax.tax_id.type_tax_use == "sale" or (tax.tax_id.type_tax_use == "purchase" and tax.tax_id.purchase_tax_type in ("itbis")): # marcos way
+                    if tax.tax_id.type_tax_use == "sale" or (tax.tax_id.type_tax_use == "purchase" and tax.tax_id.account_id.code == '11080101'): # 11080101 = ITBIS Pagado en Compras Locales
+                        commun_data["ITBIS_FACTURADO"] += tax_amount # used to 607 report as total.
+                        commun_data["ITBIS_FACTURADO_BIENES"] += tax_amount #used to 606 report
+
+                    # if tax.tax_id.type_tax_use == "purchase" and tax.tax_id.purchase_tax_type == "itbis_servicio": # marcos way
+                    if tax.tax_id.type_tax_use == "purchase" and tax.tax_id.account_id.code == '11080102': # 11080102 = ITBIS Pagado en Servicios Locales
                         commun_data["ITBIS_FACTURADO_SERVICIOS"] += tax_amount
                 else:
                     tax_amount = 0
@@ -714,6 +733,7 @@ class DgiiReport(models.Model):
                     tax_base_amount = tax_base_amount * -1
                     untax_base_amount = untax_base_amount * -1
                     tax_amount = tax_amount*-1
+            
 
                 #TODO commented in new ln10 dominicana version
                 # if tax.tax_id.base_it1_cels:
@@ -768,6 +788,7 @@ class DgiiReport(models.Model):
                 #         else:
                 #             xls_dict["ir17"][xls_cel] += tax_amount
 
+
             if invoice_id.type in ("out_invoice", "out_refund") and commun_data["MONTO_FACTURADO"]:
                 sale_report.append((self.id,
                                     sale_line,
@@ -785,6 +806,9 @@ class DgiiReport(models.Model):
                                     AFFECTED_NVOICE_ID and True or False))
                 sale_line += 1
             elif invoice_id.type in ("in_invoice", "in_refund") and commun_data["MONTO_FACTURADO"]:
+
+                commun_data["ITBIS_FACTURADO_TOTAL"] = commun_data["ITBIS_FACTURADO_BIENES"] + commun_data["ITBIS_FACTURADO_SERVICIOS"]
+
                 purchase_report.append((self.id,
                                         purchase_line,
                                         commun_data["RNC_CEDULA"],
@@ -795,18 +819,24 @@ class DgiiReport(models.Model):
                                         commun_data["FECHA_COMPROBANTE"],
                                         commun_data["FECHA_PAGO"] and commun_data["FECHA_PAGO"] or None,
                                         commun_data["TIPO_BIENES_SERVICIOS_COMPRADOS"],
-                                        commun_data["ITBIS_FACTURADO"],
+                                        commun_data["ITBIS_FACTURADO_TOTAL"],
                                         commun_data["ITBIS_RETENIDO"],
                                         commun_data["MONTO_FACTURADO"],
                                         commun_data["RETENCION_RENTA"],
                                         invoice_id.id,
                                         AFFECTED_NVOICE_ID and AFFECTED_NVOICE_ID or None,
                                         AFFECTED_NVOICE_ID and True or False,
+                                        commun_data["ITBIS_FACTURADO_BIENES"],
                                         commun_data["ITBIS_FACTURADO_SERVICIOS"]))
                 purchase_line += 1
 
-            _logger.info("DGII report {} - - {}".format(count, invoice_id.type))
+            # _logger.info("DGII report {} - - {}".format(count, invoice_id.type))
             count -= 1
+
+        if invoice_id.number == 'B0100181329':
+            _logger.warning('**** commun_data["ITBIS_FACTURADO_TOTAL"] %s', commun_data["ITBIS_FACTURADO_TOTAL"])
+            _logger.warning('**** commun_data["ITBIS_FACTURADO_SERVICIOS"] %s', commun_data["ITBIS_FACTURADO_SERVICIOS"])
+            _logger.warning('**** commun_data["ITBIS_FACTURADO_BIENES"] %s', commun_data["ITBIS_FACTURADO_BIENES"])    
 
         if purchase_report:
             self.create_purchase_lines(purchase_report)
@@ -933,7 +963,7 @@ class DgiiReport(models.Model):
             ln += line.NUMERO_COMPROBANTE_MODIFICADO or "".rjust(19)
             ln += line.FECHA_COMPROBANTE.replace("-", "")
             ln += line.FECHA_PAGO.replace("-", "") if line.FECHA_PAGO else "".rjust(8)
-            ln += "{:.2f}".format(line.ITBIS_FACTURADO).zfill(12)
+            ln += "{:.2f}".format(line.ITBIS_FACTURADO_TOTAL).zfill(12)
             ln += "{:.2f}".format(abs(line.ITBIS_RETENIDO)).zfill(12)
             ln += "{:.2f}".format(line.MONTO_FACTURADO).zfill(12)
             ln += "{:.2f}".format(line.RETENCION_RENTA).zfill(12)
@@ -999,8 +1029,9 @@ class DgiiReportPurchaseLine(models.Model):
 
     TIPO_BIENES_SERVICIOS_COMPRADOS = fields.Char("Tipo", size=2)
 
-    ITBIS_FACTURADO = fields.Float("ITBIS Facturado")
-    ITBIS_FACTURADO_SERVICIOS = fields.Float("ITBIS Facturado servicios")
+    ITBIS_FACTURADO_TOTAL = fields.Float("ITBIS Facturado (Total)")
+    ITBIS_FACTURADO_BIENES = fields.Float("ITBIS Facturado (Bienes)")
+    ITBIS_FACTURADO_SERVICIOS = fields.Float("ITBIS Facturado (Servicios)")
     ITBIS_RETENIDO = fields.Float("ITBIS Retenido")
     MONTO_FACTURADO = fields.Float("Monto Facturado")
     RETENCION_RENTA = fields.Float(u"Retención Renta")
