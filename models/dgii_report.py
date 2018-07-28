@@ -636,9 +636,6 @@ class DgiiReport(models.Model):
                 "TIPO_BIENES_SERVICIOS_COMPRADOS": invoice_id.expense_type
             }
 
-            # if invoice_id.number == 'B0100181329':
-            #     _logger.warning('invoice_id.invoice_line_ids %s', invoice_id.invoice_line_ids)
-
             # invoice_line_ids is the related table: account_invoice_line; this table has invoice_id column
             # invoice_line_tax_ids is the related table: account_invoice_line_tax; this table has invoice_line_id column that reference to account_invoice_line
             no_tax_line = invoice_id.invoice_line_ids.filtered(lambda x: not x.invoice_line_tax_ids)
@@ -711,12 +708,6 @@ class DgiiReport(models.Model):
                 if tax_line:
                     tax_amount = self.env.user.company_id.currency_id.round(
                         sum(abs(rec.debit - rec.credit) for rec in tax_line))
-
-                    if invoice_id.number == 'B0100181329':
-                        _logger.warning('**** tax_amount %s', tax_amount)
-                        _logger.warning('**** tax.tax_id.type_tax_use %s', tax.tax_id.type_tax_use)
-                        _logger.warning('**** tax.tax_id.purchase_tax_type %s', tax.tax_id.purchase_tax_type)
-                        _logger.warning('**** tax.tax_id.account_id.code %s', tax.tax_id.account_id.code)
 
                     # if tax.tax_id.type_tax_use == "sale" or (tax.tax_id.type_tax_use == "purchase" and tax.tax_id.purchase_tax_type in ("itbis")): # marcos way
                     if tax.tax_id.type_tax_use == "sale" or (tax.tax_id.type_tax_use == "purchase" and tax.tax_id.account_id.code == '11080101'): # 11080101 = ITBIS Pagado en Compras Locales
@@ -832,11 +823,6 @@ class DgiiReport(models.Model):
 
             # _logger.info("DGII report {} - - {}".format(count, invoice_id.type))
             count -= 1
-
-        if invoice_id.number == 'B0100181329':
-            _logger.warning('**** commun_data["ITBIS_FACTURADO_TOTAL"] %s', commun_data["ITBIS_FACTURADO_TOTAL"])
-            _logger.warning('**** commun_data["ITBIS_FACTURADO_SERVICIOS"] %s', commun_data["ITBIS_FACTURADO_SERVICIOS"])
-            _logger.warning('**** commun_data["ITBIS_FACTURADO_BIENES"] %s', commun_data["ITBIS_FACTURADO_BIENES"])    
 
         if purchase_report:
             self.create_purchase_lines(purchase_report)
