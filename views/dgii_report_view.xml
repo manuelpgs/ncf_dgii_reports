@@ -4,6 +4,7 @@
     <template id="assets_backend" name="web_widget_ncf_manager assets" inherit_id="web.assets_backend">
         <xpath expr="." position="inside">
             <script src="/ncf_dgii_reports/static/src/js/ncf_dgii_reports.js" type="text/javascript"></script>
+            <link rel="stylesheet" type="text/css" href="/ncf_dgii_reports/static/src/css/ncf_dgii_reports.css"/>
         </xpath>
     </template>
 
@@ -12,12 +13,12 @@
             <field name="name">Dgii report form</field>
             <field name="model">dgii.report</field>
             <field name="arch" type="xml">
-                <form string="Declaraciones">
+                <form string="Declaraciones" style="width: 100%">
                     <header>
                         <button name="generate_report" string="Generar Declaraciones" type="object" class="oe_highlight" />
                         <field name="state" widget="statusbar" clickable="0"/>
                     </header>
-                    <sheet string="Declaraciones">
+                    <sheet string="Declaraciones" style="width: 100%;">
                         <group style="width: 100%">
                             <group style="width: 100%">
                                 <field name="company_id" readonly="1"/>
@@ -419,10 +420,12 @@
                                         <field name="NUMERO_COMPROBANTE_MODIFICADO"/>
                                         <field name="FECHA_COMPROBANTE"/>
                                         <field name="FECHA_PAGO"/>
+                                        <field name="MONTO_FACTURADO_SERVICIOS" sum="Total Monto Facturado en Servicios"/>
+                                        <field name="MONTO_FACTURADO_BIENES" sum="Total Monto Facturado en Bienes"/>
+                                        <field name="MONTO_FACTURADO" sum="Total Monto Facturado"/>
                                         <field name="ITBIS_FACTURADO_TOTAL" sum="Total ITBIS Facturado"/>
                                         <field name="ITBIS_RETENIDO" sum="Total ITBIS Retenido"/>
-                                        <field name="MONTO_FACTURADO" sum="Total Monto Facturado"/>
-                                        <field name="RETENCION_RENTA" sum="Total ITBIS Facturado"/>
+                                        <field name="RETENCION_RENTA" sum="Total Retención Renta"/>
                                     </tree>
                                 </field>
                             </page>
