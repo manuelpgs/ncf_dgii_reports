@@ -709,14 +709,14 @@ class DgiiReport(models.Model):
                     tax_amount = self.env.user.company_id.currency_id.round(
                         sum(abs(rec.debit - rec.credit) for rec in tax_line))
 
-                    # if tax.tax_id.type_tax_use == "sale" or (tax.tax_id.type_tax_use == "purchase" and tax.tax_id.purchase_tax_type in ("itbis")): # marcos way
-                    if tax.tax_id.type_tax_use == "sale" or (tax.tax_id.type_tax_use == "purchase" and tax.tax_id.account_id.code == '11080101'): # 11080101 = ITBIS Pagado en Compras Locales
+                    # if tax.tax_id.type_tax_use == "sale" or (tax.tax_id.type_tax_use == "purchase" and tax.tax_id.account_id.code == '11080101'): # 11080101 = ITBIS Pagado en Compras Locales (DEPRECATED)
+                    if tax.tax_id.type_tax_use == "sale" or (tax.tax_id.type_tax_use == "purchase" and tax.tax_id.purchase_tax_type =="itbis"):
                         commun_data["ITBIS_FACTURADO"] += tax_amount # used to 607 report as total.
-                        commun_data["ITBIS_FACTURADO_BIENES"] += tax_amount #used to 606 report
+                        commun_data["ITBIS_FACTURADO_BIENES"] += tax_amount # used to 606 report
 
-                    # if tax.tax_id.type_tax_use == "purchase" and tax.tax_id.purchase_tax_type == "itbis_servicio": # marcos way
-                    if tax.tax_id.type_tax_use == "purchase" and tax.tax_id.account_id.code == '11080102': # 11080102 = ITBIS Pagado en Servicios Locales
-                        commun_data["ITBIS_FACTURADO_SERVICIOS"] += tax_amount
+                    # if tax.tax_id.type_tax_use == "purchase" and tax.tax_id.account_id.code == '11080102': # 11080102 = ITBIS Pagado en Servicios Locales (DEPRECATED)
+                    if tax.tax_id.type_tax_use == "purchase" and tax.tax_id.purchase_tax_type == "itbis_servicios"):
+                        commun_data["ITBIS_FACTURADO_SERVICIOS"] += tax_amount # used to 606 report
                 else:
                     tax_amount = 0
 
@@ -724,7 +724,7 @@ class DgiiReport(models.Model):
                     tax_base_amount = tax_base_amount * -1
                     untax_base_amount = untax_base_amount * -1
                     tax_amount = tax_amount*-1
-            
+
 
                 #TODO commented in new ln10 dominicana version
                 # if tax.tax_id.base_it1_cels:
@@ -1076,3 +1076,19 @@ class DgiiExteriorReportline(models.Model):
     RETENCION_RENTA = fields.Float(u"Retención Renta")
     MONTO_FACTURADO = fields.Float("Monto Facturado")
     invoice_id = fields.Many2one("account.invoice", "Factura")
+
+
+class AccountTax(models.Model):
+    _inherit = 'account.tax'
+
+    purchase_tax_type = fields.Selection(
+        [('itbis', 'ITBIS Pagado (Bienes)'),
+         ('itbis_servicios', 'ITBIS Pagado (Servicios)'),
+         ('ritbis', 'ITBIS Retenido'),
+         ('isr', 'ISR Retenido'),
+         ('rext', 'Remesas al Exterior (Ley 253-12)'),
+         ('isc', 'Impuesto Selectivo al Consumo (ISC)'),
+         ('cdt', 'Contribución Desarrollo Telecomunicaciones (CDT)'),
+         ('none', 'No Deducible')],
+        default="none", string="Tipo de Impuesto en Compra"
+    )
