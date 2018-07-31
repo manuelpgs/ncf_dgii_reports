@@ -88,6 +88,8 @@ class DgiiReport(models.Model):
             rec.ITBIS_TOTAL_PAYMENT = 0
 
             rec.TOTAL_MONTO_FACTURADO = 0
+            rec.MONTO_FACTURADO_SERVICIOS = 0
+            rec.MONTO_FACTURADO_BIENES = 0
             rec.TOTAL_MONTO_NC = 0
             rec.TOTAL_MONTO_PAYMENT = 0
 
@@ -100,7 +102,7 @@ class DgiiReport(models.Model):
 
                 TIPO_COMPROBANTE = self.getTipoComprobante(purchase)
 
-                if TIPO_COMPROBANTE == "04":
+                if TIPO_COMPROBANTE == "04": # 04 = NOTAS DE CRÉDITOS #TODO check to validate NC for Monto Facturado Bienes/Servicios
                     rec.ITBIS_TOTAL_NC += purchase.ITBIS_FACTURADO_TOTAL
                     rec.TOTAL_MONTO_NC += purchase.MONTO_FACTURADO
                     rec.RETENCION_RENTA -= purchase.RETENCION_RENTA
@@ -108,12 +110,14 @@ class DgiiReport(models.Model):
                     rec.ITBIS_FACTURADO_SERVICIOS -= purchase.ITBIS_FACTURADO_SERVICIOS
                     rec.ITBIS_FACTURADO_BIENES -= purchase.ITBIS_FACTURADO_BIENES #TODO validate if this line is necessary
                 elif purchase.NUMERO_COMPROBANTE_MODIFICADO == False:
-                    rec.ITBIS_TOTAL += purchase.ITBIS_FACTURADO_TOTAL
                     rec.TOTAL_MONTO_FACTURADO += purchase.MONTO_FACTURADO
-                    rec.RETENCION_RENTA += purchase.RETENCION_RENTA
-                    rec.ITBIS_RETENIDO += purchase.ITBIS_RETENIDO
+                    rec.MONTO_FACTURADO_SERVICIOS += purchase.MONTO_FACTURADO_SERVICIOS
+                    rec.MONTO_FACTURADO_BIENES += purchase.MONTO_FACTURADO_BIENES
+                    rec.ITBIS_TOTAL += purchase.ITBIS_FACTURADO_TOTAL
                     rec.ITBIS_FACTURADO_SERVICIOS += purchase.ITBIS_FACTURADO_SERVICIOS
                     rec.ITBIS_FACTURADO_BIENES += purchase.ITBIS_FACTURADO_BIENES
+                    rec.RETENCION_RENTA += purchase.RETENCION_RENTA
+                    rec.ITBIS_RETENIDO += purchase.ITBIS_RETENIDO
 
                 summary_dict[purchase.invoice_id.expense_type]["count"] += 1
                 summary_dict[purchase.invoice_id.expense_type]["amount"] += purchase.MONTO_FACTURADO
@@ -220,7 +224,12 @@ class DgiiReport(models.Model):
     COMPRAS_CANTIDAD_REGISTRO = fields.Integer(u"Cantidad de registros", compute=_count_records)
 
     TOTAL_MONTO_FACTURADO = fields.Float(u"Monto compra", compute=_purchase_report_totals)
+    MONTO_FACTURADO_SERVICIOS = fields.Float(u"Monto Facturado Servicios", compute=_purchase_report_totals)
+    MONTO_FACTURADO_BIENES = fields.Float(u"Monto Facturado Bienes", compute=_purchase_report_totals)
+
     ITBIS_TOTAL = fields.Float(u"ITBIS Compras", compute=_purchase_report_totals)
+    ITBIS_FACTURADO_SERVICIOS = fields.Float(u"ITBIS Facturado Servicios", compute=_purchase_report_totals)
+    ITBIS_FACTURADO_BIENES = fields.Float(u"ITBIS Facturado Bienes", compute=_purchase_report_totals)
 
     TOTAL_MONTO_NC = fields.Float(u"Notas de crédito", compute=_purchase_report_totals)
     ITBIS_TOTAL_NC = fields.Float(u"ITBIS Notas de crédito", compute=_purchase_report_totals)
@@ -230,8 +239,6 @@ class DgiiReport(models.Model):
 
     ITBIS_RETENIDO = fields.Float(u"ITBIS Retenido", compute=_purchase_report_totals)
     RETENCION_RENTA = fields.Float(u"Retención Renta", compute=_purchase_report_totals)
-    ITBIS_FACTURADO_SERVICIOS = fields.Float(u"ITBIS Facturado Servicios", compute=_purchase_report_totals)
-    ITBIS_FACTURADO_BIENES = fields.Float(u"ITBIS Facturado Bienes", compute=_purchase_report_totals)
 
     purchase_report = fields.One2many(u"dgii.report.purchase.line", "dgii_report_id")
     purchase_filename = fields.Char()
@@ -472,7 +479,7 @@ class DgiiReport(models.Model):
     @api.multi
     def create_purchase_lines(self, data):
         dataText = ','.join(
-            self.env.cr.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', row) for row in data)
+            self.env.cr.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', row) for row in data)
 
         purchase_insert_sql = """
                             INSERT INTO dgii_report_purchase_line ("dgii_report_id",
@@ -484,15 +491,17 @@ class DgiiReport(models.Model):
                             "FECHA_COMPROBANTE",
                             "FECHA_PAGO",
                             "TIPO_BIENES_SERVICIOS_COMPRADOS",
-                            "ITBIS_FACTURADO_TOTAL",
-                            "ITBIS_RETENIDO",
                             "MONTO_FACTURADO",
-                            "RETENCION_RENTA"
-                            ,"invoice_id",
-                            "affected_nvoice_id",
-                            "nc",
+                            "MONTO_FACTURADO_SERVICIOS",
+                            "MONTO_FACTURADO_BIENES",
+                            "ITBIS_FACTURADO_TOTAL",
                             "ITBIS_FACTURADO_BIENES",
-                            "ITBIS_FACTURADO_SERVICIOS") values {}
+                            "ITBIS_FACTURADO_SERVICIOS",                            
+                            "ITBIS_RETENIDO",                            
+                            "RETENCION_RENTA",
+                            "invoice_id",
+                            "affected_nvoice_id",
+                            "nc") values {}
                             """.format(dataText)
         self.env.cr.execute(purchase_insert_sql)
 
@@ -627,6 +636,8 @@ class DgiiReport(models.Model):
                 "nc": True if AFFECTED_NVOICE_ID else False,
                 "MONTO_FACTURADO_EXCENTO": 0,
                 "MONTO_FACTURADO": 0,
+                "MONTO_FACTURADO_SERVICIOS": 0,
+                "MONTO_FACTURADO_BIENES": 0,
                 "ITBIS_FACTURADO": 0, # used in 607 report as total
                 "ITBIS_FACTURADO_TOTAL": 0, # used in 606 report
                 "ITBIS_FACTURADO_SERVICIOS": 0,
@@ -680,7 +691,9 @@ class DgiiReport(models.Model):
 
             taxed_lines = invoice_id.invoice_line_ids.filtered(lambda x: x.invoice_line_tax_ids[0].id not in untax_ids)
 
-            taxed_lines_name = [rec.product_id.id for rec in taxed_lines] # return array of ids de products
+            taxed_lines_name = [rec.product_id.id for rec in taxed_lines] # return an array of ids de products
+
+            # _logger.warning("************* taxed_lines_name: %s" % taxed_lines_name) #backhere
 
             if commun_data["MONTO_FACTURADO_EXCENTO"]:
                 taxed_lines_amount = self.env["account.move.line"].search(
@@ -810,15 +823,17 @@ class DgiiReport(models.Model):
                                         commun_data["FECHA_COMPROBANTE"],
                                         commun_data["FECHA_PAGO"] and commun_data["FECHA_PAGO"] or None,
                                         commun_data["TIPO_BIENES_SERVICIOS_COMPRADOS"],
-                                        commun_data["ITBIS_FACTURADO_TOTAL"],
-                                        commun_data["ITBIS_RETENIDO"],
                                         commun_data["MONTO_FACTURADO"],
+                                        commun_data["MONTO_FACTURADO_SERVICIOS"],
+                                        commun_data["MONTO_FACTURADO_BIENES"],
+                                        commun_data["ITBIS_FACTURADO_TOTAL"],
+                                        commun_data["ITBIS_FACTURADO_BIENES"],
+                                        commun_data["ITBIS_FACTURADO_SERVICIOS"],
+                                        commun_data["ITBIS_RETENIDO"],
                                         commun_data["RETENCION_RENTA"],
                                         invoice_id.id,
                                         AFFECTED_NVOICE_ID and AFFECTED_NVOICE_ID or None,
-                                        AFFECTED_NVOICE_ID and True or False,
-                                        commun_data["ITBIS_FACTURADO_BIENES"],
-                                        commun_data["ITBIS_FACTURADO_SERVICIOS"]))
+                                        AFFECTED_NVOICE_ID and True or False))
                 purchase_line += 1
 
             # _logger.info("DGII report {} - - {}".format(count, invoice_id.type))
@@ -1006,20 +1021,20 @@ class DgiiReportPurchaseLine(models.Model):
 
     dgii_report_id = fields.Many2one("dgii.report")
     LINE = fields.Integer("Linea")
+    TIPO_BIENES_SERVICIOS_COMPRADOS = fields.Char(u"Tipo Bienes/Servicios", size=2)
     RNC_CEDULA = fields.Char(u"RNC", size=11)
     TIPO_IDENTIFICACION = fields.Char(u"Tipo Identificación", size=1)
     NUMERO_COMPROBANTE_FISCAL = fields.Char("NCF", size=19)
     NUMERO_COMPROBANTE_MODIFICADO = fields.Char(u"NCF Modificado", size=19)
     FECHA_COMPROBANTE = fields.Date(u"Fecha NCF")
     FECHA_PAGO = fields.Date(u"Fecha Pago")
-
-    TIPO_BIENES_SERVICIOS_COMPRADOS = fields.Char(u"Tipo Bienes/Servicios", size=2)
-
+    MONTO_FACTURADO_SERVICIOS = fields.Float(u"Monto Facturado (Servicios)")
+    MONTO_FACTURADO_BIENES = fields.Float(u"Monto Facturado (Bienes)")
+    MONTO_FACTURADO = fields.Float(u"Monto Facturado (Total)")
     ITBIS_FACTURADO_TOTAL = fields.Float(u"ITBIS Facturado (Total)")
     ITBIS_FACTURADO_BIENES = fields.Float(u"ITBIS Facturado (Bienes)")
     ITBIS_FACTURADO_SERVICIOS = fields.Float(u"ITBIS Facturado (Servicios)")
     ITBIS_RETENIDO = fields.Float(u"ITBIS Retenido")
-    MONTO_FACTURADO = fields.Float(u"Monto Facturado")
     RETENCION_RENTA = fields.Float(u"Retención Renta")
 
     invoice_id = fields.Many2one("account.invoice", "NCF")
