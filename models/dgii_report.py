@@ -496,8 +496,8 @@ class DgiiReport(models.Model):
                             "MONTO_FACTURADO_BIENES",
                             "ITBIS_FACTURADO_TOTAL",
                             "ITBIS_FACTURADO_BIENES",
-                            "ITBIS_FACTURADO_SERVICIOS",                            
-                            "ITBIS_RETENIDO",                            
+                            "ITBIS_FACTURADO_SERVICIOS",
+                            "ITBIS_RETENIDO",
                             "RETENCION_RENTA",
                             "invoice_id",
                             "affected_nvoice_id",
@@ -651,6 +651,12 @@ class DgiiReport(models.Model):
             # invoice_line_tax_ids is the related table: account_invoice_line_tax; this table has invoice_line_id column that reference to account_invoice_line
             no_tax_line = invoice_id.invoice_line_ids.filtered(lambda x: not x.invoice_line_tax_ids)
 
+            # _logger.warning("************* invoice_id.invoice_line_ids.product_id.product_tmpl_id.type: %s" % invoice_id.invoice_line_ids.product_id.product_tmpl_id.type)
+
+            # for invoice_line in invoice_id.invoice_line_ids:
+            #     _logger.warning("************* invoice_line.product_id.product_tmpl_id.type: %s" % invoice_line.product_id.product_tmpl_id.type)
+
+
             if no_tax_line:
                 if invoice_id.type in ("out_invoice", "out_refund"):
                     no_tax_line.write({"invoice_line_tax_ids": [(4, sale_except_tax_id.id, False)]})
@@ -737,6 +743,20 @@ class DgiiReport(models.Model):
                     tax_base_amount = tax_base_amount * -1
                     untax_base_amount = untax_base_amount * -1
                     tax_amount = tax_amount*-1
+
+
+            '''
+            ********** Getting MONTO_FACTURADO_SERVICIOS and MONTO_FACTURADO_BIENES for 606 Report  **********
+            '''
+            if invoice_id.type in ("in_invoice", "in_refund"):
+
+                account_move_lines = self.env["account.move.line"].search([('move_id', '=', invoice_id.move_id.id), ('product_id', '!=', False)])
+
+                for account_move_line in account_move_lines:
+                    if account_move_line.product_id.product_tmpl_id.type in ("service"):
+                        commun_data["MONTO_FACTURADO_SERVICIOS"] += self.env.user.company_id.currency_id.round(abs(account_move_line.debit - account_move_line.credit))
+                    else:
+                        commun_data["MONTO_FACTURADO_BIENES"] += self.env.user.company_id.currency_id.round(abs(account_move_line.debit - account_move_line.credit))                
 
 
                 #TODO commented in new ln10 dominicana version
