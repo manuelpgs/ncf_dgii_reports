@@ -20,394 +20,409 @@
                     </header>
                     <sheet string="Declaraciones" style="width: 100%;">
                         <group style="width: 100%">
-                            <group style="width: 100%">
-                                <field name="company_id" readonly="1"/>
-                                <field name="name" widget="mask" data-inputmask="'mask': '99/9999'"/>
-                                <field name="positive_balance"/>
-                            </group>
+                                <group style="width: 100%">
+                                    <field name="company_id" readonly="1"/>
+                                    <field name="name" widget="mask" data-inputmask="'mask': '99/9999'"/>
+                                    <field name="positive_balance"/>
+                                </group>
+
+                                <div class="separator"></div>
+
+                                <group style="width: 100%"> <hr /> </group>
+
+                                <group style="width: 100%">
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <tr>
+                                            <th colspan="2">Declaraciones del IT-1 e IR-17 (no funciona)</th>
+                                        </tr>
+                                        <tr>
+                                            <th>ARCHIVO EXCEL IT-1</th>
+                                            <td class="text-center">
+                                                <field name="it_binary" filename="it_filename" readonly="1"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>ARCHIVO EXCEL IR-17</th>
+                                            <td class="text-center">
+                                                <field name="ir17_binary" filename="ir17_filename" readonly="1"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </group>
 
                             <div class="separator"></div>
+                            <group>
+                                <h2>Reporte 606</h2>
+                                <group style="width: 100%">
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <tr>
+                                            <th class="tg-yw4l">Total Registros</th>
+                                            <th class="text-center">
+                                                <field name="COMPRAS_CANTIDAD_REGISTRO"/>
+                                            </th>
+                                        </tr>
+                                        <tr class="info">
+                                            <th class="tg-yw4l">MONTO TOTAL FACTURADO</th>
+                                            <td class="text-center">
+                                                <field name="TOTAL_MONTO_FACTURADO"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="info">
+                                            <th class="tg-yw4l">MONTO FACTURADO SERVICIOS</th>
+                                            <td class="text-center">
+                                                <field name="MONTO_FACTURADO_SERVICIOS"/>
+                                            </td>
+                                        </tr>                                    
+                                        <tr class="info">
+                                            <th class="tg-yw4l">MONTO FACTURADO BIENES</th>
+                                            <td class="text-center">
+                                                <field name="MONTO_FACTURADO_BIENES"/>
+                                            </td>
+                                        </tr>                                    
+                                        <tr class="info">
+                                            <th class="tg-yw4l">ITBIS TOTAL EN COMPRAS</th>
+                                            <td class="text-center">
+                                                <field name="ITBIS_TOTAL"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="info">
+                                            <th class="tg-yw4l">ITBIS PAGADO EN BIENES</th>
+                                            <td class="text-center">
+                                                <field name="ITBIS_FACTURADO_BIENES"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="info">
+                                            <th class="tg-yw4l">ITBIS PAGADO EN SERVICIO</th>
+                                            <td class="text-center">
+                                                <field name="ITBIS_FACTURADO_SERVICIOS"/>
+                                            </td>
+                                        </tr>                                    
+                                        <tr class="success">
+                                            <th class="tg-yw4l">NOTAS DE CRÉDITO</th>
+                                            <td class="text-center">
+                                                <field name="TOTAL_MONTO_NC"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="success">
+                                            <th class="tg-yw4l">ITBIS NOTAS DE CRÉDITO</th>
+                                            <td class="text-center">
+                                                <field name="ITBIS_TOTAL_NC"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="warning">
+                                            <th class="tg-yw4l">COMPRADO - NOTAS DE CREDITO</th>
+                                            <td class="text-center">
+                                                <field name="TOTAL_MONTO_PAYMENT"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="warning">
+                                            <th class="tg-yw4l">ITBIS COMPRADO - ITBIS NOTAS DE CRÉDITO</th>
+                                            <td class="text-center">
+                                                <field name="ITBIS_TOTAL_PAYMENT"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="danger">
+                                            <th class="tg-yw4l">ITBIS RETENIDO</th>
+                                            <td class="text-center">
+                                                <field name="ITBIS_RETENIDO"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="danger">
+                                            <th class="tg-yw4l">RETENCIÓN RENTA</th>
+                                            <td class="text-center">
+                                                <field name="RETENCION_RENTA"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="tg-yw4l">ARCHIVO 606 TXT</th>
+                                            <td class="text-center">
+                                                <field name="purchase_binary" filename="purchase_filename" readonly="1"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </group>
+                                <div class="separator"></div>
+                                <group style="width: 100%">
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <tr>
+                                            <th class="tg-yw4l">Tipos de comprobantes en el 606</th>
+                                            <th class="tg-yw4l">Cantidad</th>
+                                            <th class="tg-yw4l">Facturado</th>
+                                        </tr>
+                                        <tr>
+                                            <th>01 - Gastos de personal</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="pcount_01"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="pamount_01"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>02 - Gastos por trabajo, suministros y servicios</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="pcount_02"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="pamount_02"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>03 - Arrendamientos</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="pcount_03"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="pamount_03"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>04 - Gastos de Activos Fijos</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="pcount_04"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="pamount_04"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>05 - Gastos de Representación</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="pcount_05"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="pamount_05"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>06 - Otras Deducciones Admitidas</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="pcount_06"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="pamount_06"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>07 - Gastos Financieros</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="pcount_07"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="pamount_07"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>08 - Gastos Extraordinarios</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="pcount_08"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="pamount_08"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>09 - Compras y Gastos que forman parte del Costo de
+                                                Venta
+                                            </th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="pcount_09"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="pamount_09"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>10 - Adquisiciones de Activos</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="pcount_10"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="pamount_10"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>11 - Gastos de Seguro</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="pcount_11"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="pamount_11"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </group>
+                                
+                                <group style="width: 100%"><h2>Reporte 607</h2></group>
+                                <div class="separator"></div>
+                                <group style="width: 100%">
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <tr>
+                                            <th class="tg-yw4l">Reporte 607 - Total Registros</th>
+                                            <th class="text-center">
+                                                <field name="VENTAS_CANTIDAD_REGISTRO"/>
+                                            </th>
+                                        </tr>
+                                        <tr class="info">
+                                            <th class="tg-yw4l">INGRESOS</th>
+                                            <td class="text-center">
+                                                <field name="SALE_TOTAL_MONTO_FACTURADO"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="info">
+                                            <th class="tg-yw4l">ITBIS COBRADO</th>
+                                            <td class="text-center">
+                                                <field name="SALE_ITBIS_TOTAL"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="success">
+                                            <th class="tg-yw4l">NOTAS DE CRÉDITO</th>
+                                            <td class="text-center">
+                                                <field name="SALE_TOTAL_MONTO_NC"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="success">
+                                            <th class="tg-yw4l">ITBIS NOTAS DE CRÉDITO</th>
+                                            <td class="text-center">
+                                                <field name="SALE_ITBIS_NC"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="warning">
+                                            <th class="tg-yw4l">INGRESOS - NOTAS DE CREDITO</th>
+                                            <td class="text-center">
+                                                <field name="SALE_TOTAL_MONTO_CHARGED"/>
+                                            </td>
+                                        </tr>
+                                        <tr class="warning">
+                                            <th class="tg-yw4l">ITBIS COBRADO- ITBIS NOTAS DE CRÉDITO</th>
+                                            <td class="text-center">
+                                                <field name="SALE_ITBIS_CHARGED"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="tg-yw4l">TOTAL DE INGRESOS EXENTOS</th>
+                                            <td class="text-center">
+                                                <field name="MONTO_FACTURADO_EXCENTO"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="tg-yw4l">Archivo 607 TXT</th>
+                                            <td class="text-center">
+                                                <field name="sale_binary" filename="sale_filename" readonly="1"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </group>
+                                <div class="separator"></div>
+                                <group style="width: 100%">
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <tr>
+                                            <th class="tg-yw4l">Tipos comprobante 607</th>
+                                            <th class="tg-yw4l">Cantidad</th>
+                                            <th class="tg-yw4l">Monto Facturado</th>
+                                        </tr>
+                                        <tr>
+                                            <th>Consumidor final</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="count_final"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="amount_final"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Para credito fiscal</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="count_fiscal"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="amount_fiscal"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Gubernamental</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="count_gov"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="amount_gov"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Regimenes especiales</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="count_special"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="amount_special"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Unico ingreso</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="count_unico"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="amount_unico"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </group>
 
-                            <group style="width: 100%"> <hr /> </group>
+                                <div class="separator"></div>
+                                <group style="width: 100%"><h2>Reporte 608</h2></group>
+                                <group style="width: 100%">
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <tr>
+                                            <th colspan="2">608</th>
+                                        </tr>
+                                        <tr>
+                                            <th>CANTIDAD DE REGISTROS</th>
+                                            <td class="text-center">
+                                                <field name="CANCEL_CANTIDAD_REGISTRO"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>ARCHIVO 608 TXT</th>
+                                            <td class="text-center">
+                                                <field name="cancel_binary" filename="cancel_filename" readonly="1"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </group>
 
-                            <group style="width: 100%">
-                                <table class="table table-striped table-bordered table-condensed">
-                                    <tr>
-                                        <th colspan="2">Declaraciones del IT-1 e IR-17 (no funciona)</th>
-                                    </tr>
-                                    <tr>
-                                        <th>ARCHIVO EXCEL IT-1</th>
-                                        <td class="text-center">
-                                            <field name="it_binary" filename="it_filename" readonly="1"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>ARCHIVO EXCEL IR-17</th>
-                                        <td class="text-center">
-                                            <field name="ir17_binary" filename="ir17_filename" readonly="1"/>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </group>
-
-                            <div class="separator"></div>
-                            <group style="width: 100%"><h2>Reporte 608</h2></group>
-                            <group style="width: 100%">
-                                <table class="table table-striped table-bordered table-condensed">
-                                    <tr>
-                                        <th colspan="2">608</th>
-                                    </tr>
-                                    <tr>
-                                        <th>CANTIDAD DE REGISTROS</th>
-                                        <td class="text-center">
-                                            <field name="CANCEL_CANTIDAD_REGISTRO"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>ARCHIVO 608 TXT</th>
-                                        <td class="text-center">
-                                            <field name="cancel_binary" filename="cancel_filename" readonly="1"/>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </group>
-
-                            <group style="width: 100%"><h2>Reporte 609</h2></group>
-                            <div class="separator"></div>
-                            <group style="width: 100%">
-                                <table class="table table-striped table-bordered table-condensed">
-                                    <tr>
-                                        <th colspan="2">609</th>
-                                    </tr>
-                                    <tr>
-                                        <th>CANTIDAD DE REGISTROS</th>
-                                        <td class="text-center">
-                                            <field name="EXTERIOR_CANTIDAD_REGISTRO"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>EXTERIOR TOTAL MONTO FACTURADO</th>
-                                        <td class="text-center">
-                                            <field name="EXTERIOR_TOTAL_MONTO_FACTURADO"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>ARCHIVO 609 TXT</th>
-                                        <td class="text-center">
-                                            <field name="exterior_binary" filename="exterior_filename" readonly="1"/>
-                                        </td>
-                                    </tr>
-                                </table>
+                                <group style="width: 100%"><h2>Reporte 609</h2></group>
+                                <div class="separator"></div>
+                                <group style="width: 100%">
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <tr>
+                                            <th colspan="2">609</th>
+                                        </tr>
+                                        <tr>
+                                            <th>CANTIDAD DE REGISTROS</th>
+                                            <td class="text-center">
+                                                <field name="EXTERIOR_CANTIDAD_REGISTRO"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>EXTERIOR TOTAL MONTO FACTURADO</th>
+                                            <td class="text-center">
+                                                <field name="EXTERIOR_TOTAL_MONTO_FACTURADO"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>ARCHIVO 609 TXT</th>
+                                            <td class="text-center">
+                                                <field name="exterior_binary" filename="exterior_filename" readonly="1"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </group>
                             </group>
                         </group>
 
-                        <div class="separator"></div>
-                        <group>
-                            <h2>Reporte 606</h2>
-                            <group style="width: 100%">
-                                <table class="table table-striped table-bordered table-condensed">
-                                    <tr>
-                                        <th class="tg-yw4l">Total Registros</th>
-                                        <th class="text-center">
-                                            <field name="COMPRAS_CANTIDAD_REGISTRO"/>
-                                        </th>
-                                    </tr>
-                                    <tr class="info">
-                                        <th class="tg-yw4l">MONTO TOTAL FACTURADO</th>
-                                        <td class="text-center">
-                                            <field name="TOTAL_MONTO_FACTURADO"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="info">
-                                        <th class="tg-yw4l">ITBIS TOTAL EN COMPRAS</th>
-                                        <td class="text-center">
-                                            <field name="ITBIS_TOTAL"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="success">
-                                        <th class="tg-yw4l">NOTAS DE CRÉDITO</th>
-                                        <td class="text-center">
-                                            <field name="TOTAL_MONTO_NC"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="success">
-                                        <th class="tg-yw4l">ITBIS NOTAS DE CRÉDITO</th>
-                                        <td class="text-center">
-                                            <field name="ITBIS_TOTAL_NC"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="warning">
-                                        <th class="tg-yw4l">COMPRADO - NOTAS DE CREDITO</th>
-                                        <td class="text-center">
-                                            <field name="TOTAL_MONTO_PAYMENT"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="warning">
-                                        <th class="tg-yw4l">ITBIS COMPRADO - ITBIS NOTAS DE CRÉDITO</th>
-                                        <td class="text-center">
-                                            <field name="ITBIS_TOTAL_PAYMENT"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="danger">
-                                        <th class="tg-yw4l">ITBIS RETENIDO</th>
-                                        <td class="text-center">
-                                            <field name="ITBIS_RETENIDO"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="danger">
-                                        <th class="tg-yw4l">RETENCIÓN RENTA</th>
-                                        <td class="text-center">
-                                            <field name="RETENCION_RENTA"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="danger">
-                                        <th class="tg-yw4l">ITBIS PAGADO EN BIENES</th>
-                                        <td class="text-center">
-                                            <field name="ITBIS_FACTURADO_BIENES"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="danger">
-                                        <th class="tg-yw4l">ITBIS PAGADO EN SERVICIO</th>
-                                        <td class="text-center">
-                                            <field name="ITBIS_FACTURADO_SERVICIOS"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="tg-yw4l">ARCHIVO 606 TXT</th>
-                                        <td class="text-center">
-                                            <field name="purchase_binary" filename="purchase_filename" readonly="1"/>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </group>
-                            <div class="separator"></div>
-                            <group style="width: 100%">
-                                <table class="table table-striped table-bordered table-condensed">
-                                    <tr>
-                                        <th class="tg-yw4l">Tipos de comprobantes en el 606</th>
-                                        <th class="tg-yw4l">Cantidad</th>
-                                        <th class="tg-yw4l">Facturado</th>
-                                    </tr>
-                                    <tr>
-                                        <th>01 - Gastos de personal</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="pcount_01"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="pamount_01"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>02 - Gastos por trabajo, suministros y servicios</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="pcount_02"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="pamount_02"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>03 - Arrendamientos</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="pcount_03"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="pamount_03"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>04 - Gastos de Activos Fijos</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="pcount_04"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="pamount_04"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>05 - Gastos de Representación</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="pcount_05"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="pamount_05"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>06 - Otras Deducciones Admitidas</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="pcount_06"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="pamount_06"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>07 - Gastos Financieros</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="pcount_07"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="pamount_07"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>08 - Gastos Extraordinarios</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="pcount_08"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="pamount_08"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>09 - Compras y Gastos que forman parte del Costo de
-                                            Venta
-                                        </th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="pcount_09"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="pamount_09"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>10 - Adquisiciones de Activos</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="pcount_10"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="pamount_10"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>11 - Gastos de Seguro</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="pcount_11"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="pamount_11"/>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </group>
-                            
-                            <group style="width: 100%"><h2>Reporte 607</h2></group>
-                            <div class="separator"></div>
-                            <group style="width: 100%">
-                                <table class="table table-striped table-bordered table-condensed">
-                                    <tr>
-                                        <th class="tg-yw4l">Reporte 607 - Total Registros</th>
-                                        <th class="text-center">
-                                            <field name="VENTAS_CANTIDAD_REGISTRO"/>
-                                        </th>
-                                    </tr>
-                                    <tr class="info">
-                                        <th class="tg-yw4l">INGRESOS</th>
-                                        <td class="text-center">
-                                            <field name="SALE_TOTAL_MONTO_FACTURADO"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="info">
-                                        <th class="tg-yw4l">ITBIS COBRADO</th>
-                                        <td class="text-center">
-                                            <field name="SALE_ITBIS_TOTAL"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="success">
-                                        <th class="tg-yw4l">NOTAS DE CRÉDITO</th>
-                                        <td class="text-center">
-                                            <field name="SALE_TOTAL_MONTO_NC"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="success">
-                                        <th class="tg-yw4l">ITBIS NOTAS DE CRÉDITO</th>
-                                        <td class="text-center">
-                                            <field name="SALE_ITBIS_NC"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="warning">
-                                        <th class="tg-yw4l">INGRESOS - NOTAS DE CREDITO</th>
-                                        <td class="text-center">
-                                            <field name="SALE_TOTAL_MONTO_CHARGED"/>
-                                        </td>
-                                    </tr>
-                                    <tr class="warning">
-                                        <th class="tg-yw4l">ITBIS COBRADO- ITBIS NOTAS DE CRÉDITO</th>
-                                        <td class="text-center">
-                                            <field name="SALE_ITBIS_CHARGED"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="tg-yw4l">TOTAL DE INGRESOS EXENTOS</th>
-                                        <td class="text-center">
-                                            <field name="MONTO_FACTURADO_EXCENTO"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th class="tg-yw4l">Archivo 607 TXT</th>
-                                        <td class="text-center">
-                                            <field name="sale_binary" filename="sale_filename" readonly="1"/>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </group>
-                            <div class="separator"></div>
-                            <group style="width: 100%">
-                                <table class="table table-striped table-bordered table-condensed">
-                                    <tr>
-                                        <th class="tg-yw4l">Tipos comprobante 607</th>
-                                        <th class="tg-yw4l">Cantidad</th>
-                                        <th class="tg-yw4l">Monto Facturado</th>
-                                    </tr>
-                                    <tr>
-                                        <th>Consumidor final</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="count_final"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="amount_final"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Para credito fiscal</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="count_fiscal"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="amount_fiscal"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Gubernamental</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="count_gov"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="amount_gov"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Regimenes especiales</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="count_special"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="amount_special"/>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Unico ingreso</th>
-                                        <td class="tg-yw4l text-center">
-                                            <field name="count_unico"/>
-                                        </td>
-                                        <td class="tg-yw4l text-right">
-                                            <field name="amount_unico"/>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </group>
-                        </group>
+                        <group style="width: 100%"> <hr /> </group>
+                        
                         <notebook>
                             <page string="606">
                                 <field name="purchase_report">
