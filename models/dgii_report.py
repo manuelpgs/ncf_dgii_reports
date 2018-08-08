@@ -1059,7 +1059,7 @@ class DgiiReportPurchaseLine(models.Model):
 
     invoice_id = fields.Many2one("account.invoice", "NCF")
     number = fields.Char(related="invoice_id.number", string=" NCF") #todo validate to remove
-    inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="Relacionado") #todo validate to remove
+    inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="Proveedor")
     affected_nvoice_id = fields.Many2one("account.invoice", "NCF Modificado")
     nc = fields.Boolean()
 
@@ -1084,7 +1084,7 @@ class DgiiReportSaleLine(models.Model):
                                   track_visibility='always') #todo validate to remove
 
     number = fields.Char(related="invoice_id.number", string=" NCF") #todo validate to remove
-    inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="Relacionado") #TODO validate to remove
+    inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="Cliente")
     affected_nvoice_id = fields.Many2one("account.invoice", "NCF Modificado")
     nc = fields.Boolean()
 
