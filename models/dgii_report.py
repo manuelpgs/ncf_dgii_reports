@@ -437,31 +437,49 @@ class DgiiReport(models.Model):
 
         return NUMERO_COMPROBANTE_MODIFICADO, AFFECTED_NVOICE_ID
 
+
+    '''
+    *** This method is only called when the Invoice is paid
+    '''
     def get_payment_date_and_retention_data(self, invoice_id):
+
         FECHA_PAGO = False
         ITBIS_RETENIDO = 0
         RETENCION_RENTA = 0
+
+        if invoice_id.id == False : #TODO for some reason, invoice_id has not any properties some times...
+            return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA
+
+        # payment_rel = self.env["account.invoice.payment.rel"].search(['invoice_id', '=', invoice_id.id]) # This return an error:  KeyError: 'account.invoice.payment.rel'
+        self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)        
+        payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()        
+
+        payment = self.env["account.payment"].browse(payment_rel['payment_id'])
+
+        FECHA_PAGO = payment.payment_date
+
         move_id = self.env["account.move.line"].search([("move_id", "=", invoice_id.move_id.id), ('full_reconcile_id', '!=', False)])
+
         if invoice_id.journal_id.purchase_type in ("informal", "normal"):
+        
             if move_id:
+
                 retentions = self.env["account.move.line"].search(
                     [('invoice_id', '=', invoice_id.id), ('payment_id', '!=', False),
                      ('tax_line_id', '!=', False)])
+
+                # if invoice_id.number == 'B0100000003' and invoice_id.type in ("in_invoice"):
+                #     _logger.warning("************* retentions: %s" % retentions)
+
                 if retentions:
+
                     for retention in retentions:
                         if retention.tax_line_id.purchase_tax_type == "ritbis":
                             ITBIS_RETENIDO += retention.credit
                         elif retention.tax_line_id.purchase_tax_type == "isr":
                             RETENCION_RENTA += retention.credit
 
-                    FECHA_PAGO = retentions[0].date
-                else:
-                    FECHA_PAGO = move_id and move_id[0].date or False
-            else:
-                FECHA_PAGO = move_id and move_id[0].date or False
-
-        else:
-            FECHA_PAGO = False
+                    FECHA_PAGO = retentions[0].date #TODO validate this....
 
         return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA
 
@@ -620,8 +638,10 @@ class DgiiReport(models.Model):
                 invoiceMonth = int(invoice_id.date_invoice[5:7])
                 paidMonth = int(FECHA_PAGO[5:7]) if FECHA_PAGO else False
                 periodMonth = int(month)
+
                 if invoiceMonth != paidMonth and invoiceMonth == periodMonth: # we this validation, we are looking don't show retentions in a period that the invoice was not paid.
                     FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = False
+
 
             commun_data = {
                 "RNC_CEDULA": RNC_CEDULA,
@@ -650,12 +670,6 @@ class DgiiReport(models.Model):
             # invoice_line_ids is the related table: account_invoice_line; this table has invoice_id column
             # invoice_line_tax_ids is the related table: account_invoice_line_tax; this table has invoice_line_id column that reference to account_invoice_line
             no_tax_line = invoice_id.invoice_line_ids.filtered(lambda x: not x.invoice_line_tax_ids)
-
-            # _logger.warning("************* invoice_id.invoice_line_ids.product_id.product_tmpl_id.type: %s" % invoice_id.invoice_line_ids.product_id.product_tmpl_id.type)
-
-            # for invoice_line in invoice_id.invoice_line_ids:
-            #     _logger.warning("************* invoice_line.product_id.product_tmpl_id.type: %s" % invoice_line.product_id.product_tmpl_id.type)
-
 
             if no_tax_line:
                 if invoice_id.type in ("out_invoice", "out_refund"):
@@ -756,7 +770,7 @@ class DgiiReport(models.Model):
                     if account_move_line.product_id.product_tmpl_id.type in ("service"):
                         commun_data["MONTO_FACTURADO_SERVICIOS"] += self.env.user.company_id.currency_id.round(abs(account_move_line.debit - account_move_line.credit))
                     else:
-                        commun_data["MONTO_FACTURADO_BIENES"] += self.env.user.company_id.currency_id.round(abs(account_move_line.debit - account_move_line.credit))                
+                        commun_data["MONTO_FACTURADO_BIENES"] += self.env.user.company_id.currency_id.round(abs(account_move_line.debit - account_move_line.credit))
 
 
                 #TODO commented in new ln10 dominicana version
