@@ -451,35 +451,35 @@ class DgiiReport(models.Model):
             return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA
 
         # payment_rel = self.env["account.invoice.payment.rel"].search(['invoice_id', '=', invoice_id.id]) # This return an error:  KeyError: 'account.invoice.payment.rel'
-        self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)        
-        payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()        
+        self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)
+        payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()
 
         payment = self.env["account.payment"].browse(payment_rel['payment_id'])
-
         FECHA_PAGO = payment.payment_date
 
-        move_id = self.env["account.move.line"].search([("move_id", "=", invoice_id.move_id.id), ('full_reconcile_id', '!=', False)])
+        move_id = self.env["account.move.line"].search([("move_id", "=", invoice_id.move_id.id), ('full_reconcile_id', '!=', False)]) # just one is full_reconcile_id
 
         if invoice_id.journal_id.purchase_type in ("informal", "normal"):
-        
+
             if move_id:
 
-                retentions = self.env["account.move.line"].search(
-                    [('invoice_id', '=', invoice_id.id), ('payment_id', '!=', False),
-                     ('tax_line_id', '!=', False)])
+                ''' I commented the below query because when I run in my DB:
+                select * from account_move_line where payment_id > 0 and invoice_id > 0 order by payment_id desc;
+                I just get four invoice and I have other Invoice with ITBIS and ISR retentions but it doesn't appears in this search....
+                '''
+                # account_move_lines = self.env["account.move.line"].search(
+                #     [('invoice_id', '=', invoice_id.id), ('payment_id', '!=', False),
+                #      ('tax_line_id', '!=', False)])
 
-                # if invoice_id.number == 'B0100000003' and invoice_id.type in ("in_invoice"):
-                #     _logger.warning("************* retentions: %s" % retentions)
+                account_move_lines = self.env["account.move.line"].search(
+                    [('move_id', '=', invoice_id.move_id.id),('tax_line_id', '!=', False)]) # I removed the filter ('payment_id', '!=', False) because in one of my case the move lines don't have payment_id, why?, I don't have idea....
 
-                if retentions:
-
-                    for retention in retentions:
-                        if retention.tax_line_id.purchase_tax_type == "ritbis":
-                            ITBIS_RETENIDO += retention.credit
-                        elif retention.tax_line_id.purchase_tax_type == "isr":
-                            RETENCION_RENTA += retention.credit
-
-                    FECHA_PAGO = retentions[0].date #TODO validate this....
+                if account_move_lines:
+                    for line in account_move_lines:
+                        if line.tax_line_id.purchase_tax_type == "ritbis":
+                            ITBIS_RETENIDO += line.credit
+                        elif line.tax_line_id.purchase_tax_type == "isr":
+                            RETENCION_RENTA += line.credit
 
         return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA
 
@@ -639,7 +639,11 @@ class DgiiReport(models.Model):
                 paidMonth = int(FECHA_PAGO[5:7]) if FECHA_PAGO else False
                 periodMonth = int(month)
 
-                if invoiceMonth != paidMonth and invoiceMonth == periodMonth: # we this validation, we are looking don't show retentions in a period that the invoice was not paid.
+                '''
+                    With the validation below we are looking don't show payment date or retentions info in a period
+                    that the invoice was not paid yet.
+                '''
+                if invoiceMonth != paidMonth and invoiceMonth == periodMonth:
                     FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = False
 
 
@@ -713,7 +717,7 @@ class DgiiReport(models.Model):
 
             taxed_lines_name = [rec.product_id.id for rec in taxed_lines] # return an array of ids de products
 
-            # _logger.warning("************* taxed_lines_name: %s" % taxed_lines_name) #backhere
+            # _logger.warning("************* taxed_lines_name: %s" % taxed_lines_name)
 
             if commun_data["MONTO_FACTURADO_EXCENTO"]:
                 taxed_lines_amount = self.env["account.move.line"].search(
