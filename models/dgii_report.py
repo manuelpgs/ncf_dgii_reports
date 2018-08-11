@@ -86,17 +86,24 @@ class DgiiReport(models.Model):
             rec.ITBIS_TOTAL = 0
             rec.ITBIS_TOTAL_NC = 0
             rec.ITBIS_TOTAL_PAYMENT = 0
-
             rec.TOTAL_MONTO_FACTURADO = 0
             rec.MONTO_FACTURADO_SERVICIOS = 0
             rec.MONTO_FACTURADO_BIENES = 0
             rec.TOTAL_MONTO_NC = 0
             rec.TOTAL_MONTO_PAYMENT = 0
-
             rec.ITBIS_RETENIDO = 0
             rec.RETENCION_RENTA = 0
             rec.ITBIS_FACTURADO_BIENES = 0
             rec.ITBIS_FACTURADO_SERVICIOS = 0
+            rec.ITBIS_SUJETO_PROPORCIONALIDAD = 0
+            rec.ITBIS_LLEVADO_ALCOSTO = 0
+            rec.ITBIS_POR_ADELANTAR = 0
+            rec.ITBIS_PERCIBIDO_COMPRAS = 0
+            rec.RETENCION_RENTA = 0
+            rec.ISR_PERCIBIDO_COMPRAS = 0
+            rec.IMPUESTO_ISC = 0
+            rec.IMPUESTO_OTROS = 0
+            rec.MONTO_PROPINA_LEGAL = 0
 
             for purchase in rec.purchase_report:
 
@@ -105,10 +112,18 @@ class DgiiReport(models.Model):
                 if TIPO_COMPROBANTE == "04": # 04 = NOTAS DE CRÉDITOS #TODO check to validate NC for Monto Facturado Bienes/Servicios
                     rec.ITBIS_TOTAL_NC += purchase.ITBIS_FACTURADO_TOTAL
                     rec.TOTAL_MONTO_NC += purchase.MONTO_FACTURADO
-                    rec.RETENCION_RENTA -= purchase.RETENCION_RENTA
                     rec.ITBIS_RETENIDO -= purchase.ITBIS_RETENIDO
                     rec.ITBIS_FACTURADO_SERVICIOS -= purchase.ITBIS_FACTURADO_SERVICIOS
                     rec.ITBIS_FACTURADO_BIENES -= purchase.ITBIS_FACTURADO_BIENES #TODO validate if this line is necessary
+                    rec.ITBIS_SUJETO_PROPORCIONALIDAD -= purchase.ITBIS_SUJETO_PROPORCIONALIDAD #TODO validate if this line is necessary
+                    rec.ITBIS_LLEVADO_ALCOSTO -= purchase.ITBIS_LLEVADO_ALCOSTO #TODO validate if this line is necessary
+                    rec.ITBIS_POR_ADELANTAR -= purchase.ITBIS_POR_ADELANTAR #TODO validate if this line is necessary
+                    rec.ITBIS_PERCIBIDO_COMPRAS -= purchase.ITBIS_PERCIBIDO_COMPRAS #TODO validate if this line is necessary
+                    rec.RETENCION_RENTA -= purchase.RETENCION_RENTA
+                    rec.ISR_PERCIBIDO_COMPRAS -= purchase.ISR_PERCIBIDO_COMPRAS #TODO validate if this line is necessary
+                    rec.IMPUESTO_ISC -= purchase.IMPUESTO_ISC #TODO validate if this line is necessary
+                    rec.IMPUESTO_OTROS -= purchase.IMPUESTO_OTROS #TODO validate if this line is necessary
+                    rec.MONTO_PROPINA_LEGAL -= purchase.MONTO_PROPINA_LEGAL #TODO validate if this line is necessary
                 elif purchase.NUMERO_COMPROBANTE_MODIFICADO == False:
                     rec.TOTAL_MONTO_FACTURADO += purchase.MONTO_FACTURADO
                     rec.MONTO_FACTURADO_SERVICIOS += purchase.MONTO_FACTURADO_SERVICIOS
@@ -116,14 +131,23 @@ class DgiiReport(models.Model):
                     rec.ITBIS_TOTAL += purchase.ITBIS_FACTURADO_TOTAL
                     rec.ITBIS_FACTURADO_SERVICIOS += purchase.ITBIS_FACTURADO_SERVICIOS
                     rec.ITBIS_FACTURADO_BIENES += purchase.ITBIS_FACTURADO_BIENES
-                    rec.RETENCION_RENTA += purchase.RETENCION_RENTA
                     rec.ITBIS_RETENIDO += purchase.ITBIS_RETENIDO
+                    rec.ITBIS_SUJETO_PROPORCIONALIDAD += purchase.ITBIS_SUJETO_PROPORCIONALIDAD
+                    rec.ITBIS_LLEVADO_ALCOSTO += purchase.ITBIS_LLEVADO_ALCOSTO
+                    rec.ITBIS_POR_ADELANTAR += purchase.ITBIS_POR_ADELANTAR
+                    rec.ITBIS_PERCIBIDO_COMPRAS += purchase.ITBIS_PERCIBIDO_COMPRAS
+                    rec.RETENCION_RENTA += purchase.RETENCION_RENTA
+                    rec.ISR_PERCIBIDO_COMPRAS += purchase.ISR_PERCIBIDO_COMPRAS
+                    rec.IMPUESTO_ISC += purchase.IMPUESTO_ISC
+                    rec.IMPUESTO_OTROS += purchase.IMPUESTO_OTROS
+                    rec.MONTO_PROPINA_LEGAL += purchase.MONTO_PROPINA_LEGAL
 
                 summary_dict[purchase.invoice_id.expense_type]["count"] += 1
                 summary_dict[purchase.invoice_id.expense_type]["amount"] += purchase.MONTO_FACTURADO
 
             rec.ITBIS_TOTAL_PAYMENT = rec.ITBIS_TOTAL - rec.ITBIS_TOTAL_NC
             rec.TOTAL_MONTO_PAYMENT = rec.TOTAL_MONTO_FACTURADO - rec.TOTAL_MONTO_NC
+            rec.ITBIS_POR_ADELANTAR = rec.ITBIS_TOTAL - rec.ITBIS_LLEVADO_ALCOSTO
 
             rec.pcount_01 = summary_dict["01"]["count"]
             rec.pcount_02 = summary_dict["02"]["count"]
@@ -352,7 +376,7 @@ class DgiiReport(models.Model):
                 account_move_lines = self.env["account.move.line"].search([('payment_id', '=', paid_invoice_id.id)])
                 if(account_move_lines):
                     invoice = account_move_lines[0].invoice_id
-                    FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA = self.get_payment_date_and_retention_data(invoice)
+                    FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR = self.get_payment_date_and_retention_data(invoice)
                     if ITBIS_RETENIDO or RETENCION_RENTA:
                         invoice_ids |= paid_invoice_id.invoice_ids.filtered(lambda r: r.journal_id.purchase_type in ("informal", "normal")).filtered(lambda r: r.journal_id.type == "purchase") # this is like array_push(), just making appends
 
@@ -446,9 +470,10 @@ class DgiiReport(models.Model):
         FECHA_PAGO = False
         ITBIS_RETENIDO = 0
         RETENCION_RENTA = 0
+        TIPO_RETENCION_ISR = False
 
         if invoice_id.id == False : #TODO for some reason, invoice_id has not any properties some times...
-            return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA
+            return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR
 
         # payment_rel = self.env["account.invoice.payment.rel"].search(['invoice_id', '=', invoice_id.id]) # This return an error:  KeyError: 'account.invoice.payment.rel'
         self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)
@@ -480,8 +505,81 @@ class DgiiReport(models.Model):
                             ITBIS_RETENIDO += line.credit
                         elif line.tax_line_id.purchase_tax_type == "isr":
                             RETENCION_RENTA += line.credit
+                            TIPO_RETENCION_ISR = line.tax_line_id.isr_retention_type or False
 
-        return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA
+        return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR
+
+    '''
+        This method return:
+        Impuesto Selectivo al Consumo (Casilla 20),
+        Otros Impuesto/Tasas (Casilla 21),
+        and Monto Propina Legal (Casilla 22)
+        but only when the invoice is Open or Paid
+    '''
+    def get_isc_propina_otros(self, invoice_id):
+
+        IMPUESTO_ISC = 0
+        IMPUESTO_OTROS = 0
+        MONTO_PROPINA_LEGAL = 0
+
+        if invoice_id.id == False : #TODO for some reason, invoice_id has not any properties some times...
+            return IMPUESTO_ISC, IMPUESTO_OTROS, MONTO_PROPINA_LEGAL
+
+        if invoice_id.state in ("open", "paid"):
+
+            account_move_lines = self.env["account.move.line"].search(
+                [('move_id', '=', invoice_id.move_id.id),('tax_line_id', '!=', False)])
+
+            if account_move_lines:
+                for line in account_move_lines:
+                    if line.tax_line_id.purchase_tax_type == "isc":
+                        IMPUESTO_ISC += line.credit
+                    elif line.tax_line_id.purchase_tax_type in ("cdt"): #TODO may be there another taxes as "IMPUESTOS_OTROS" that are not just CDT.
+                        IMPUESTO_OTROS += line.credit
+                    elif line.tax_line_id.purchase_tax_type in ("propina_legal"):
+                        MONTO_PROPINA_LEGAL += line.credit
+
+        return IMPUESTO_ISC, IMPUESTO_OTROS, MONTO_PROPINA_LEGAL
+
+
+    def get_format_pago(self, invoice_id):
+
+        FORMA_PAGO = '04' # 04 = COMPRA A CREDITO
+
+        if invoice_id.state == "paid":
+            
+            self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)
+            payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
+
+            if len(payment_rel) == 0: # could be a NOTA DE CREDITO, they don't seems store payment_id
+
+                refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)])
+                if refund_invoice_id:
+                    FORMA_PAGO = '04'
+                
+            elif len(payment_rel) > 1:
+        
+                FORMA_PAGO = '07' # 07 = MIXTO
+
+            else:
+
+                payment = self.env["account.payment"].browse(payment_rel[0]['payment_id'])
+
+                if payment.writeoff_account_id > 0: #TODO validate with an accountant this.
+                    FORMA_PAGO = '07' # 07 = MIXTO
+                elif payment.journal_id.payment_form == 'cash':
+                    FORMA_PAGO = '01'
+                elif payment.journal_id.payment_form == 'bank':
+                    FORMA_PAGO = '02'
+                elif payment.journal_id.payment_form == 'card':
+                    FORMA_PAGO = '03'
+                elif payment.journal_id.payment_form == 'credit': # just in case they have a journal of credit
+                    FORMA_PAGO = '04'
+                elif payment.journal_id.payment_form == 'swap':
+                    FORMA_PAGO = '05' # Permuta
+
+        return FORMA_PAGO
+
 
     @api.multi
     def create_sales_lines(self, data):
@@ -497,7 +595,7 @@ class DgiiReport(models.Model):
     @api.multi
     def create_purchase_lines(self, data):
         dataText = ','.join(
-            self.env.cr.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', row) for row in data)
+            self.env.cr.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', row) for row in data)
 
         purchase_insert_sql = """
                             INSERT INTO dgii_report_purchase_line ("dgii_report_id",
@@ -516,7 +614,17 @@ class DgiiReport(models.Model):
                             "ITBIS_FACTURADO_BIENES",
                             "ITBIS_FACTURADO_SERVICIOS",
                             "ITBIS_RETENIDO",
+                            "ITBIS_SUJETO_PROPORCIONALIDAD",
+                            "ITBIS_LLEVADO_ALCOSTO",
+                            "ITBIS_POR_ADELANTAR",
+                            "ITBIS_PERCIBIDO_COMPRAS",
+                            "TIPO_RETENCION_ISR",
                             "RETENCION_RENTA",
+                            "ISR_PERCIBIDO_COMPRAS",
+                            "IMPUESTO_ISC",
+                            "IMPUESTO_OTROS",
+                            "MONTO_PROPINA_LEGAL",
+                            "FORMA_PAGO",
                             "invoice_id",
                             "affected_nvoice_id",
                             "nc") values {}
@@ -628,13 +736,15 @@ class DgiiReport(models.Model):
 
             NUMERO_COMPROBANTE_MODIFICADO = AFFECTED_NVOICE_ID = False
 
+            IMPUESTO_ISC, IMPUESTO_OTROS, MONTO_PROPINA_LEGAL = self.get_isc_propina_otros(invoice_id)
+
             if invoice_id.type in ("out_refund", "in_refund"):
                 NUMERO_COMPROBANTE_MODIFICADO, AFFECTED_NVOICE_ID = self.get_numero_de_comprobante_modificado(invoice_id)
 
-            FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = False
+            FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = TIPO_RETENCION_ISR = False
 
             if invoice_id.state == "paid":
-                FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA = self.get_payment_date_and_retention_data(invoice_id)
+                FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR = self.get_payment_date_and_retention_data(invoice_id)
                 invoiceMonth = int(invoice_id.date_invoice[5:7])
                 paidMonth = int(FECHA_PAGO[5:7]) if FECHA_PAGO else False
                 periodMonth = int(month)
@@ -646,10 +756,13 @@ class DgiiReport(models.Model):
                 if invoiceMonth != paidMonth and invoiceMonth == periodMonth:
                     FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = False
 
+            FORMA_PAGO = self.get_format_pago(invoice_id) if invoice_id.type in ("in_invoice", "in_refund") else False
 
+            # ''' This is one line in 606 or 607 report '''
             commun_data = {
                 "RNC_CEDULA": RNC_CEDULA,
                 "TIPO_IDENTIFICACION": TIPO_IDENTIFICACION,
+                "TIPO_BIENES_SERVICIOS_COMPRADOS": invoice_id.expense_type,
                 "NUMERO_COMPROBANTE_FISCAL": NUMERO_COMPROBANTE_FISCAL,
                 "NUMERO_COMPROBANTE_MODIFICADO": NUMERO_COMPROBANTE_MODIFICADO,
                 "FECHA_COMPROBANTE": FECHA_COMPROBANTE,
@@ -666,9 +779,18 @@ class DgiiReport(models.Model):
                 "ITBIS_FACTURADO_TOTAL": 0, # used in 606 report
                 "ITBIS_FACTURADO_SERVICIOS": 0,
                 "ITBIS_FACTURADO_BIENES": 0,
-                "ITBIS_RETENIDO": ITBIS_RETENIDO and ITBIS_RETENIDO or 0,
-                "RETENCION_RENTA": RETENCION_RENTA and RETENCION_RENTA or 0,
-                "TIPO_BIENES_SERVICIOS_COMPRADOS": invoice_id.expense_type
+                "ITBIS_RETENIDO": ITBIS_RETENIDO or 0,
+                "ITBIS_SUJETO_PROPORCIONALIDAD": 0,
+                "ITBIS_LLEVADO_ALCOSTO": 0,
+                "ITBIS_POR_ADELANTAR": 0,
+                "ITBIS_PERCIBIDO_COMPRAS": 0,
+                "TIPO_RETENCION_ISR": TIPO_RETENCION_ISR,
+                "RETENCION_RENTA": RETENCION_RENTA or 0,
+                "ISR_PERCIBIDO_COMPRAS": 0,
+                "IMPUESTO_ISC": IMPUESTO_ISC,
+                "IMPUESTO_OTROS": IMPUESTO_OTROS,
+                "MONTO_PROPINA_LEGAL": MONTO_PROPINA_LEGAL,
+                "FORMA_PAGO": FORMA_PAGO
             }
 
             # invoice_line_ids is the related table: account_invoice_line; this table has invoice_id column
@@ -1059,21 +1181,31 @@ class DgiiReportPurchaseLine(models.Model):
 
     dgii_report_id = fields.Many2one("dgii.report")
     LINE = fields.Integer("Linea")
-    TIPO_BIENES_SERVICIOS_COMPRADOS = fields.Char(u"Tipo Bienes/Servicios", size=2)
-    RNC_CEDULA = fields.Char(u"RNC", size=11)
-    TIPO_IDENTIFICACION = fields.Char(u"Tipo Identificación", size=1)
-    NUMERO_COMPROBANTE_FISCAL = fields.Char("NCF", size=19)
-    NUMERO_COMPROBANTE_MODIFICADO = fields.Char(u"NCF Modificado", size=19)
-    FECHA_COMPROBANTE = fields.Date(u"Fecha NCF")
-    FECHA_PAGO = fields.Date(u"Fecha Pago")
-    MONTO_FACTURADO_SERVICIOS = fields.Float(u"Monto Facturado (Servicios)")
-    MONTO_FACTURADO_BIENES = fields.Float(u"Monto Facturado (Bienes)")
-    MONTO_FACTURADO = fields.Float(u"Monto Facturado (Total)")
-    ITBIS_FACTURADO_TOTAL = fields.Float(u"ITBIS Facturado (Total)")
+    TIPO_BIENES_SERVICIOS_COMPRADOS = fields.Char(u"3 - Tipo Bienes/Servicios", size=2)
+    RNC_CEDULA = fields.Char(u"1 - RNC", size=11)
+    TIPO_IDENTIFICACION = fields.Char(u"2 - Tipo Identificación", size=1)
+    NUMERO_COMPROBANTE_FISCAL = fields.Char("4 - NCF", size=19)
+    NUMERO_COMPROBANTE_MODIFICADO = fields.Char(u"5 - NCF Modificado", size=19)
+    FECHA_COMPROBANTE = fields.Date(u"6 - Fecha NCF")
+    FECHA_PAGO = fields.Date(u"7 - Fecha Pago")
+    MONTO_FACTURADO_SERVICIOS = fields.Float(u"8 - Monto Facturado (Servicios)")
+    MONTO_FACTURADO_BIENES = fields.Float(u"9 - Monto Facturado (Bienes)")
+    MONTO_FACTURADO = fields.Float(u"10 - Monto Facturado (Total)")
+    ITBIS_FACTURADO_TOTAL = fields.Float(u"11 - ITBIS Facturado (Total)")
     ITBIS_FACTURADO_BIENES = fields.Float(u"ITBIS Facturado (Bienes)")
     ITBIS_FACTURADO_SERVICIOS = fields.Float(u"ITBIS Facturado (Servicios)")
-    ITBIS_RETENIDO = fields.Float(u"ITBIS Retenido")
-    RETENCION_RENTA = fields.Float(u"Retención Renta")
+    ITBIS_RETENIDO = fields.Float(u"12 - ITBIS Retenido")
+    ITBIS_SUJETO_PROPORCIONALIDAD = fields.Float(u"13 - ITBIS sujeto a Proporcionalidad (Art. 349)")
+    ITBIS_LLEVADO_ALCOSTO = fields.Float(u"14 - ITBIS llevado al Costo")
+    ITBIS_POR_ADELANTAR = fields.Float(u"15 - ITBIS por Adelantar")
+    ITBIS_PERCIBIDO_COMPRAS = fields.Float(u"16 - ITBIS percibido en compras")
+    TIPO_RETENCION_ISR = fields.Char(u"17 - Tipo de Retención en ISR", size=2)
+    RETENCION_RENTA = fields.Float(u"18 - Monto Retención Renta")
+    ISR_PERCIBIDO_COMPRAS = fields.Float(u"19 - ISR Percibido en compras")
+    IMPUESTO_ISC = fields.Float(u"20 - Impuesto Selectivo al Consumo")
+    IMPUESTO_OTROS = fields.Float(u"21 - Otros Impuesto/Tasas")
+    MONTO_PROPINA_LEGAL = fields.Float(u"22 - Monto Propina Legal")
+    FORMA_PAGO = fields.Char(u"23 - Forma de Pago", size=2)
 
     invoice_id = fields.Many2one("account.invoice", "NCF")
     number = fields.Char(related="invoice_id.number", string=" NCF") #todo validate to remove
@@ -1142,6 +1274,7 @@ class AccountTax(models.Model):
          ('rext', 'Remesas al Exterior (Ley 253-12)'),
          ('isc', 'Impuesto Selectivo al Consumo (ISC)'),
          ('cdt', 'Contribución Desarrollo Telecomunicaciones (CDT)'),
+         ('propina_legal', 'Monto Propina Legal'),
          ('none', 'No Deducible')],
         default="none", string="Tipo de Impuesto en Compra"
     )
