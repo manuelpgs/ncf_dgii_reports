@@ -479,8 +479,16 @@ class DgiiReport(models.Model):
         self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)
         payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()
 
-        payment = self.env["account.payment"].browse(payment_rel['payment_id'])
-        FECHA_PAGO = payment.payment_date
+        if payment_rel:            
+
+            payment = self.env["account.payment"].browse(payment_rel['payment_id'])
+            FECHA_PAGO = payment.payment_date
+
+        else: # might be a paid with a "NOTA DE CREDITO"
+
+            refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)])
+            if refund_invoice_id:
+                FECHA_PAGO = refund_invoice_id.date_invoice #TODO, this could return an array... so be careful
 
         move_id = self.env["account.move.line"].search([("move_id", "=", invoice_id.move_id.id), ('full_reconcile_id', '!=', False)]) # just one is full_reconcile_id
 
@@ -505,7 +513,8 @@ class DgiiReport(models.Model):
                             ITBIS_RETENIDO += line.credit
                         elif line.tax_line_id.purchase_tax_type == "isr":
                             RETENCION_RENTA += line.credit
-                            TIPO_RETENCION_ISR = line.tax_line_id.isr_retention_type or False
+                            TIPO_RETENCION_ISR = line.tax_line_id.isr_retention_type or None
+
 
         return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR
 
@@ -534,7 +543,7 @@ class DgiiReport(models.Model):
                 for line in account_move_lines:
                     if line.tax_line_id.purchase_tax_type == "isc":
                         IMPUESTO_ISC += line.credit
-                    elif line.tax_line_id.purchase_tax_type in ("cdt"): #TODO may be there another taxes as "IMPUESTOS_OTROS" that are not just CDT.
+                    elif line.tax_line_id.purchase_tax_type in ("cdt"): #TODO might be there another taxes as "IMPUESTOS_OTROS" that are not just CDT.
                         IMPUESTO_OTROS += line.credit
                     elif line.tax_line_id.purchase_tax_type in ("propina_legal"):
                         MONTO_PROPINA_LEGAL += line.credit
@@ -551,11 +560,11 @@ class DgiiReport(models.Model):
             self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)
             payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
 
-            if len(payment_rel) == 0: # could be a NOTA DE CREDITO, they don't seems store payment_id
+            if not payment_rel: # could be a NOTA DE CREDITO, they don't seems store payment_id
 
                 refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)])
                 if refund_invoice_id:
-                    FORMA_PAGO = '04'
+                    FORMA_PAGO = '06' # 06 = NOTA DE CREDITO
                 
             elif len(payment_rel) > 1:
         
@@ -565,7 +574,7 @@ class DgiiReport(models.Model):
 
                 payment = self.env["account.payment"].browse(payment_rel[0]['payment_id'])
 
-                if payment.writeoff_account_id > 0: #TODO validate with an accountant this.
+                if payment.writeoff_account_id.id > 0: #TODO validate with an accountant this (lo que se debe validar es si una factura es de mil pesos pagan solo 500 y se hace un writeoff de los otros 500...).
                     FORMA_PAGO = '07' # 07 = MIXTO
                 elif payment.journal_id.payment_form == 'cash':
                     FORMA_PAGO = '01'
@@ -714,6 +723,11 @@ class DgiiReport(models.Model):
         invoice_ids |= self.get_late_informal_payed_invoice(start_date, end_date)
 
         count = len(invoice_ids)
+
+        '''
+        *****************************  START FOR EACH INVOICE *****************************
+        '''
+
         for invoice_id in invoice_ids:
 
             RNC_CEDULA, TIPO_IDENTIFICACION = self.get_identification_info(invoice_id.partner_id.vat)
@@ -758,7 +772,7 @@ class DgiiReport(models.Model):
 
             FORMA_PAGO = self.get_format_pago(invoice_id) if invoice_id.type in ("in_invoice", "in_refund") else False
 
-            # ''' This is one line in 606 or 607 report '''
+            ''' This is one line in 606 or 607 report '''
             commun_data = {
                 "RNC_CEDULA": RNC_CEDULA,
                 "TIPO_IDENTIFICACION": TIPO_IDENTIFICACION,
@@ -784,7 +798,7 @@ class DgiiReport(models.Model):
                 "ITBIS_LLEVADO_ALCOSTO": 0,
                 "ITBIS_POR_ADELANTAR": 0,
                 "ITBIS_PERCIBIDO_COMPRAS": 0,
-                "TIPO_RETENCION_ISR": TIPO_RETENCION_ISR,
+                "TIPO_RETENCION_ISR": TIPO_RETENCION_ISR or None,
                 "RETENCION_RENTA": RETENCION_RENTA or 0,
                 "ISR_PERCIBIDO_COMPRAS": 0,
                 "IMPUESTO_ISC": IMPUESTO_ISC,
@@ -793,8 +807,14 @@ class DgiiReport(models.Model):
                 "FORMA_PAGO": FORMA_PAGO
             }
 
-            # invoice_line_ids is the related table: account_invoice_line; this table has invoice_id column
-            # invoice_line_tax_ids is the related table: account_invoice_line_tax; this table has invoice_line_id column that reference to account_invoice_line
+            '''
+            ************************* starting from here need be a move to one or more custom method for cleaning and better understand. *****************************
+            '''
+
+            '''
+                invoice_line_ids is the related table: account_invoice_line; this table has invoice_id column
+                invoice_line_tax_ids is the related table: account_invoice_line_tax; this table has invoice_line_id column that reference to account_invoice_line
+            '''
             no_tax_line = invoice_id.invoice_line_ids.filtered(lambda x: not x.invoice_line_tax_ids)
 
             if no_tax_line:
@@ -953,14 +973,18 @@ class DgiiReport(models.Model):
                 #             xls_dict["ir17"][xls_cel] += tax_amount
 
 
+            '''
+            ************************* ending from here need be a move to one or more custom method for cleaning and better understand. *****************************
+            '''                
+
+
             if invoice_id.type in ("out_invoice", "out_refund") and commun_data["MONTO_FACTURADO"]:
                 sale_report.append((self.id,
                                     sale_line,
                                     commun_data["RNC_CEDULA"],
                                     commun_data["TIPO_IDENTIFICACION"],
                                     commun_data["NUMERO_COMPROBANTE_FISCAL"],
-                                    commun_data["NUMERO_COMPROBANTE_MODIFICADO"] and commun_data[
-                                        "NUMERO_COMPROBANTE_MODIFICADO"] or None,
+                                    commun_data["NUMERO_COMPROBANTE_MODIFICADO"] or None,
                                     commun_data["FECHA_COMPROBANTE"],
                                     commun_data["ITBIS_FACTURADO"],
                                     commun_data["MONTO_FACTURADO"],
@@ -972,16 +996,16 @@ class DgiiReport(models.Model):
             elif invoice_id.type in ("in_invoice", "in_refund") and commun_data["MONTO_FACTURADO"]:
 
                 commun_data["ITBIS_FACTURADO_TOTAL"] = commun_data["ITBIS_FACTURADO_BIENES"] + commun_data["ITBIS_FACTURADO_SERVICIOS"]
+                commun_data["ITBIS_POR_ADELANTAR"] = commun_data["ITBIS_FACTURADO_TOTAL"] #TODO need to be calculated for some kind of companies that have "ITBIS LLEVADO AL COSTO"
 
                 purchase_report.append((self.id,
                                         purchase_line,
                                         commun_data["RNC_CEDULA"],
                                         commun_data["TIPO_IDENTIFICACION"],
                                         commun_data["NUMERO_COMPROBANTE_FISCAL"],
-                                        commun_data["NUMERO_COMPROBANTE_MODIFICADO"] and commun_data[
-                                            "NUMERO_COMPROBANTE_MODIFICADO"] or None,
+                                        commun_data["NUMERO_COMPROBANTE_MODIFICADO"] or None,
                                         commun_data["FECHA_COMPROBANTE"],
-                                        commun_data["FECHA_PAGO"] and commun_data["FECHA_PAGO"] or None,
+                                        commun_data["FECHA_PAGO"] or None,
                                         commun_data["TIPO_BIENES_SERVICIOS_COMPRADOS"],
                                         commun_data["MONTO_FACTURADO"],
                                         commun_data["MONTO_FACTURADO_SERVICIOS"],
@@ -990,14 +1014,28 @@ class DgiiReport(models.Model):
                                         commun_data["ITBIS_FACTURADO_BIENES"],
                                         commun_data["ITBIS_FACTURADO_SERVICIOS"],
                                         commun_data["ITBIS_RETENIDO"],
+                                        commun_data["ITBIS_SUJETO_PROPORCIONALIDAD"],
+                                        commun_data["ITBIS_LLEVADO_ALCOSTO"],
+                                        commun_data["ITBIS_POR_ADELANTAR"],
+                                        commun_data["ITBIS_PERCIBIDO_COMPRAS"],
+                                        commun_data["TIPO_RETENCION_ISR"],
                                         commun_data["RETENCION_RENTA"],
+                                        commun_data["ISR_PERCIBIDO_COMPRAS"],
+                                        commun_data["IMPUESTO_ISC"],
+                                        commun_data["IMPUESTO_OTROS"],
+                                        commun_data["MONTO_PROPINA_LEGAL"],
+                                        commun_data["FORMA_PAGO"],
                                         invoice_id.id,
-                                        AFFECTED_NVOICE_ID and AFFECTED_NVOICE_ID or None,
-                                        AFFECTED_NVOICE_ID and True or False))
+                                        AFFECTED_NVOICE_ID or None,
+                                        AFFECTED_NVOICE_ID or False))
                 purchase_line += 1
 
             # _logger.info("DGII report {} - - {}".format(count, invoice_id.type))
             count -= 1
+
+        '''
+        *****************************  END FOR EACH INVOICE *****************************
+        '''
 
         if purchase_report:
             self.create_purchase_lines(purchase_report)
