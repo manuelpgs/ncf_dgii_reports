@@ -421,7 +421,7 @@ class DgiiReport(models.Model):
         # if not origin_invoice_ids and invoice_type in ("out_refund", "in_refund"):
         #     error_list.append(u"NC/ND sin comprobante que afecta")
 
-        if invoice.type in ("out_refund", "in_refund"):
+        if  not invoice.refund_invoice_id and invoice.type in ("out_refund", "in_refund"):
             error_list.append(u"NC/ND sin comprobante que afecta")
 
         if not invoice.number:
@@ -447,14 +447,15 @@ class DgiiReport(models.Model):
 
     @api.multi
     def get_numero_de_comprobante_modificado(self, invoice_id):
+        
         NUMERO_COMPROBANTE_MODIFICADO = False
         AFFECTED_NVOICE_ID = False
 
-        origin_invoice_id = invoice_id.origin_invoice_ids.filtered(lambda x: x.state in ("open", "paid"))
+        # origin_invoice_id = invoice_id.origin_invoice_ids.filtered(lambda x: x.state in ("open", "paid")) # old way in marcos way... AttributeError: 'account.invoice' object has no attribute 'origin_invoice_ids'
+        origin_invoice_id = invoice_id.refund_invoice_id.filtered(lambda x: x.state in ("open", "paid"))
 
         if not origin_invoice_id:
-            origin_invoice_id = self.env["account.invoice"].search(
-                [('number', '=', invoice_id.origin)])
+            origin_invoice_id = self.env["account.invoice"].search([('number', '=', invoice_id.origin)])
 
         NUMERO_COMPROBANTE_MODIFICADO = origin_invoice_id[0].number
         AFFECTED_NVOICE_ID = origin_invoice_id[0].id
@@ -485,6 +486,9 @@ class DgiiReport(models.Model):
             FECHA_PAGO = payment.payment_date
 
         else: # might be a paid with a "NOTA DE CREDITO"
+            #TODO este else quizás no debería ser alcanzado dado que una factura no se puede pagar con una NC, en teoría...
+            # pues no te darán una NC de una factura que no está pagada y por lo consiguiente si una factura fue pagada debe tener su forma de pago
+            # que NO es una nota de crédito.   Quizás la opción de pago 06 = NOTA DE CREDITO del 606 es para ponerle a las NC como tal.
 
             refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)], limit=1, order='refund_invoice_id desc') # the last one is the real payment day
             if refund_invoice_id:
@@ -561,6 +565,9 @@ class DgiiReport(models.Model):
             payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
 
             if not payment_rel: # could be a NOTA DE CREDITO, they don't seems store payment_id
+                #TODO este else quizás no debería ser alcanzado dado que una factura no se puede pagar con una NC, en teoría...
+                # pues no te darán una NC de una factura que no está pagada y por lo consiguiente si una factura fue pagada debe tener su forma de pago
+                # que NO es una nota de crédito.   Quizás la opción de pago 06 = NOTA DE CREDITO del 606 es para ponerle a las NC como tal.                
 
                 refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)])
                 if refund_invoice_id:
@@ -1027,7 +1034,7 @@ class DgiiReport(models.Model):
                                         commun_data["FORMA_PAGO"],
                                         invoice_id.id,
                                         AFFECTED_NVOICE_ID or None,
-                                        AFFECTED_NVOICE_ID or False))
+                                        True if AFFECTED_NVOICE_ID else False))
                 purchase_line += 1
 
             # _logger.info("DGII report {} - - {}".format(count, invoice_id.type))
@@ -1218,11 +1225,11 @@ class DgiiReportPurchaseLine(models.Model):
     _name = "dgii.report.purchase.line"
 
     dgii_report_id = fields.Many2one("dgii.report")
-    LINE = fields.Integer("Linea")
+    LINE = fields.Integer(u"Línea")
     TIPO_BIENES_SERVICIOS_COMPRADOS = fields.Char(u"3 - Tipo Bienes/Servicios", size=2)
     RNC_CEDULA = fields.Char(u"1 - RNC", size=11)
     TIPO_IDENTIFICACION = fields.Char(u"2 - Tipo Identificación", size=1)
-    NUMERO_COMPROBANTE_FISCAL = fields.Char("4 - NCF", size=19)
+    NUMERO_COMPROBANTE_FISCAL = fields.Char(u"4 - NCF", size=19)
     NUMERO_COMPROBANTE_MODIFICADO = fields.Char(u"5 - NCF Modificado", size=19)
     FECHA_COMPROBANTE = fields.Date(u"6 - Fecha NCF")
     FECHA_PAGO = fields.Date(u"7 - Fecha Pago")
@@ -1246,9 +1253,9 @@ class DgiiReportPurchaseLine(models.Model):
     FORMA_PAGO = fields.Char(u"23 - Forma de Pago", size=2)
 
     invoice_id = fields.Many2one("account.invoice", "NCF")
-    number = fields.Char(related="invoice_id.number", string=" NCF") #todo validate to remove
+    number = fields.Char(related="invoice_id.number", string=" NCF")
     inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="1 - Proveedor")
-    affected_nvoice_id = fields.Many2one("account.invoice", "NCF Modificado")
+    affected_nvoice_id = fields.Many2one("account.invoice", "Relacionado NCF Modificado")
     nc = fields.Boolean()
 
 
