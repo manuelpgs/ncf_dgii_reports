@@ -486,9 +486,9 @@ class DgiiReport(models.Model):
 
         else: # might be a paid with a "NOTA DE CREDITO"
 
-            refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)])
+            refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)], limit=1, order='refund_invoice_id desc') # the last one is the real payment day
             if refund_invoice_id:
-                FECHA_PAGO = refund_invoice_id.date_invoice #TODO, this could return an array... so be careful
+                FECHA_PAGO = refund_invoice_id.date_invoice
 
         move_id = self.env["account.move.line"].search([("move_id", "=", invoice_id.move_id.id), ('full_reconcile_id', '!=', False)]) # just one is full_reconcile_id
 
