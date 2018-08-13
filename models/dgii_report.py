@@ -1247,7 +1247,7 @@ class DgiiReportPurchaseLine(models.Model):
 
     invoice_id = fields.Many2one("account.invoice", "NCF")
     number = fields.Char(related="invoice_id.number", string=" NCF") #todo validate to remove
-    inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="Proveedor")
+    inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="1 - Proveedor")
     affected_nvoice_id = fields.Many2one("account.invoice", "NCF Modificado")
     nc = fields.Boolean()
 

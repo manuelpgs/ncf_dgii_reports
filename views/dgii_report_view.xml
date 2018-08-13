@@ -440,7 +440,17 @@
                                         <field name="MONTO_FACTURADO" sum="Total Monto Facturado"/>
                                         <field name="ITBIS_FACTURADO_TOTAL" sum="Total ITBIS Facturado"/>
                                         <field name="ITBIS_RETENIDO" sum="Total ITBIS Retenido"/>
+                                        <field name="ITBIS_SUJETO_PROPORCIONALIDAD" sum="Total ITBIS Sujeto a Proporcionalidad"/>
+                                        <field name="ITBIS_LLEVADO_ALCOSTO" sum="Total ITBIS llevado al Costo"/>
+                                        <field name="ITBIS_POR_ADELANTAR" sum="Total ITBIS por Adelantar"/>
+                                        <field name="ITBIS_PERCIBIDO_COMPRAS" sum="Total ITBIS Percibido en Compras"/>
+                                        <field name="TIPO_RETENCION_ISR" />
                                         <field name="RETENCION_RENTA" sum="Total Retención Renta"/>
+                                        <field name="ISR_PERCIBIDO_COMPRAS" sum="Total ISR Percibido en Compras"/>
+                                        <field name="IMPUESTO_ISC" sum="Total ISC"/>
+                                        <field name="IMPUESTO_OTROS" sum="Total Otros Impuestos (CDT)"/>
+                                        <field name="MONTO_PROPINA_LEGAL" sum="Total Propina Legal (10%)"/>
+                                        <field name="FORMA_PAGO" />
                                     </tree>
                                 </field>
                             </page>
