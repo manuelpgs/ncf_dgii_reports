@@ -1076,9 +1076,10 @@ class DgiiReport(models.Model):
         if sale_report:
             self.create_sales_lines(sale_report)
 
-        self.generate_txt_files()
+        self.generate_txt_files_norma_06_18()
+        # self.generate_txt_files() # old way of txt reports
         # pp(xls_dict)
-        self.generate_xls_files(xls_dict)
+        # self.generate_xls_files(xls_dict)
 
         if error_list:
             self.post_error_list(error_list)
@@ -1117,22 +1118,22 @@ class DgiiReport(models.Model):
                 'ir17_binary': base64.b64encode(xls_file.read())
             })
 
-    def generate_txt_files(self):
+    def generate_txt_files_norma_06_18(self):
+        
         company_fiscal_identificacion = re.sub("[^0-9]", "", self.company_id.vat)
         period = self.name.split("/")
         month = period[0]
-        year = period[1]
+        year = period[1]        
 
+        ''' ************************ 607 TXT REPORT ******************************** '''
         sale_path = '/tmp/607{}.txt'.format(company_fiscal_identificacion)
         sale_file = open(sale_path, 'w')
 
         lines = []
 
         CANTIDAD_REGISTRO = str(len(self.sale_report)).zfill(12)
-        TOTAL_MONTO_FACTURADO_FACTURAS = sum(
-            [rec.MONTO_FACTURADO for rec in self.sale_report if rec.NUMERO_COMPROBANTE_MODIFICADO == False])
-        TOTAL_MONTO_FACTURADO_NC = sum(
-            [rec.MONTO_FACTURADO for rec in self.sale_report if rec.NUMERO_COMPROBANTE_MODIFICADO != False])
+        TOTAL_MONTO_FACTURADO_FACTURAS = sum([rec.MONTO_FACTURADO for rec in self.sale_report if rec.NUMERO_COMPROBANTE_MODIFICADO == False])
+        TOTAL_MONTO_FACTURADO_NC = sum([rec.MONTO_FACTURADO for rec in self.sale_report if rec.NUMERO_COMPROBANTE_MODIFICADO != False])
         TOTAL_MONTO_FACTURADO = "{:.2f}".format(TOTAL_MONTO_FACTURADO_FACTURAS - TOTAL_MONTO_FACTURADO_NC).zfill(16)
 
         header = "607"
@@ -1160,10 +1161,139 @@ class DgiiReport(models.Model):
         sale_file.close()
         sale_file = open(sale_path, 'rb')
         sale_binary = base64.b64encode(sale_file.read())
-        report_name = 'DGII_607_{}_{}{}.TXT'.format(company_fiscal_identificacion, str(year),
-                                                    str(month).zfill(2))
+        report_name = 'DGII_607_{}_{}{}.TXT'.format(company_fiscal_identificacion, str(year),str(month).zfill(2))
         self.write({'sale_binary': sale_binary, 'sale_filename': report_name})
 
+        ''' ************************ 606 TXT REPORT ******************************** '''
+        pruchase_path = '/tmp/606{}.txt'.format(company_fiscal_identificacion)
+        purchase_file = open(pruchase_path, 'w')
+        lines = []
+
+        CANTIDAD_REGISTRO = "{}".format(len(self.purchase_report)).zfill(2)        
+
+        header = "606"
+        header += "|"
+        header += company_fiscal_identificacion + "|"
+        header += str(year)
+        header += str(month).zfill(2)
+        header += "|"
+        header += CANTIDAD_REGISTRO
+        
+        lines.append(header)
+
+        for line in self.purchase_report:
+            ln = ""
+            ln += line.RNC_CEDULA + "|"
+            ln += line.TIPO_IDENTIFICACION + "|"
+            ln += line.TIPO_BIENES_SERVICIOS_COMPRADOS + "|"
+            ln += line.NUMERO_COMPROBANTE_FISCAL + "|"
+            ln += line.NUMERO_COMPROBANTE_MODIFICADO + "|" if line.NUMERO_COMPROBANTE_MODIFICADO else "|"
+            ln += line.FECHA_COMPROBANTE.replace("-", "") + "|"
+            ln += line.FECHA_PAGO.replace("-", "") + "|" if line.FECHA_PAGO else "" + "|"
+            ln += str(abs(line.MONTO_FACTURADO_SERVICIOS)) + "|" if line.MONTO_FACTURADO_SERVICIOS else "|"
+            ln += str(abs(line.MONTO_FACTURADO_BIENES)) + "|" if line.MONTO_FACTURADO_BIENES else "|"
+            ln += str(abs(line.MONTO_FACTURADO)) + "|" # the total
+            ln += str(abs(line.ITBIS_FACTURADO_TOTAL)) + "|" if line.ITBIS_FACTURADO_TOTAL else "0" + "|"
+            ln += str(abs(line.ITBIS_RETENIDO)) + "|" if line.ITBIS_RETENIDO else "|"
+            ln += str(abs(line.ITBIS_SUJETO_PROPORCIONALIDAD)) + "|" if line.ITBIS_SUJETO_PROPORCIONALIDAD else "|"
+            ln += str(abs(line.ITBIS_LLEVADO_ALCOSTO)) + "|" if line.ITBIS_LLEVADO_ALCOSTO else "|"
+            ln += str(abs(line.ITBIS_POR_ADELANTAR)) + "|" if line.ITBIS_POR_ADELANTAR else "0" + "|"
+            ln += str(abs(line.ITBIS_PERCIBIDO_COMPRAS)) + "|" if line.ITBIS_PERCIBIDO_COMPRAS else "|"
+            ln += line.TIPO_RETENCION_ISR + "|" if line.TIPO_RETENCION_ISR else "|"
+            ln += str(abs(line.RETENCION_RENTA)) + "|" if line.RETENCION_RENTA else "|"
+            ln += str(abs(line.ISR_PERCIBIDO_COMPRAS)) + "|" if line.ISR_PERCIBIDO_COMPRAS else "|"
+            ln += str(abs(line.IMPUESTO_ISC)) + "|" if line.IMPUESTO_ISC else "|"
+            ln += str(abs(line.IMPUESTO_OTROS)) + "|" if line.IMPUESTO_OTROS else "|"
+            ln += str(abs(line.MONTO_PROPINA_LEGAL)) + "|" if line.MONTO_PROPINA_LEGAL else "|"
+            ln += line.FORMA_PAGO
+            lines.append(ln)
+
+        for line in lines:
+            purchase_file.write(line + "\n")
+
+        purchase_file.close()
+        purchase_file = open(pruchase_path, 'rb')
+        purchase_binary = base64.b64encode(purchase_file.read())
+        purchase_filename = 'DGII_F_606_{}_{}{}.TXT'.format(company_fiscal_identificacion, str(year), str(month).zfill(2))
+        self.write({'purchase_binary': purchase_binary, 'purchase_filename': purchase_filename})
+
+        ''' ************************ 608 TXT REPORT ******************************** '''
+        path = '/tmp/608{}.txt'.format(company_fiscal_identificacion)
+        file = open(path, 'w')
+        lines = []
+
+        header = "608"
+        header += company_fiscal_identificacion.zfill(11)
+        header += str(year)
+        header += str(month).zfill(2)
+        lines.append(header)
+
+        for line in self.cancel_report:
+            ln = ""
+            ln += line.NUMERO_COMPROBANTE_FISCAL
+            ln += line.FECHA_COMPROBANTE and line.FECHA_COMPROBANTE.replace("-", "") or ""
+            ln += "{}".format(line.TIPO_ANULACION).zfill(2)
+            lines.append(ln)
+
+        for line in lines:
+            file.write(line + "\n")
+
+        file.close()
+        file = open(path, 'rb')
+        report = base64.b64encode(file.read())
+        report_name = 'DGII_608_{}_{}{}.TXT'.format(company_fiscal_identificacion, str(year), str(month).zfill(2))
+        self.write({'cancel_binary': report, 'cancel_filename': report_name})
+
+    
+    '''
+        DEPRECATED! OLD DGII WAY
+    '''
+    def generate_txt_files(self):
+        company_fiscal_identificacion = re.sub("[^0-9]", "", self.company_id.vat)
+        period = self.name.split("/")
+        month = period[0]
+        year = period[1]        
+
+        ''' ************************ 607 TXT REPORT ******************************** '''
+        sale_path = '/tmp/607{}.txt'.format(company_fiscal_identificacion)
+        sale_file = open(sale_path, 'w')
+
+        lines = []
+
+        CANTIDAD_REGISTRO = str(len(self.sale_report)).zfill(12)
+        TOTAL_MONTO_FACTURADO_FACTURAS = sum([rec.MONTO_FACTURADO for rec in self.sale_report if rec.NUMERO_COMPROBANTE_MODIFICADO == False])
+        TOTAL_MONTO_FACTURADO_NC = sum([rec.MONTO_FACTURADO for rec in self.sale_report if rec.NUMERO_COMPROBANTE_MODIFICADO != False])
+        TOTAL_MONTO_FACTURADO = "{:.2f}".format(TOTAL_MONTO_FACTURADO_FACTURAS - TOTAL_MONTO_FACTURADO_NC).zfill(16)
+
+        header = "607"
+        header += company_fiscal_identificacion.rjust(11)
+        header += str(year)
+        header += str(month).zfill(2)
+        header += CANTIDAD_REGISTRO
+        header += TOTAL_MONTO_FACTURADO
+        lines.append(header)
+
+        for sale_line in self.sale_report:
+            ln = ""
+            ln += sale_line.RNC_CEDULA and sale_line.RNC_CEDULA.rjust(11) or "".rjust(11)
+            ln += sale_line.TIPO_IDENTIFICACION
+            ln += sale_line.NUMERO_COMPROBANTE_FISCAL.rjust(19)
+            ln += sale_line.NUMERO_COMPROBANTE_MODIFICADO or "".rjust(19)
+            ln += sale_line.FECHA_COMPROBANTE.replace("-", "")
+            ln += "{:.2f}".format(sale_line.ITBIS_FACTURADO).zfill(12)
+            ln += "{:.2f}".format(sale_line.MONTO_FACTURADO).zfill(12)
+            lines.append(ln)
+
+        for line in lines:
+            sale_file.write(line + "\n")
+
+        sale_file.close()
+        sale_file = open(sale_path, 'rb')
+        sale_binary = base64.b64encode(sale_file.read())
+        report_name = 'DGII_607_{}_{}{}.TXT'.format(company_fiscal_identificacion, str(year),str(month).zfill(2))
+        self.write({'sale_binary': sale_binary, 'sale_filename': report_name})
+
+        ''' ************************ 606 TXT REPORT ******************************** '''
         pruchase_path = '/tmp/606{}.txt'.format(company_fiscal_identificacion)
         purchase_file = open(pruchase_path, 'w')
         lines = []
@@ -1210,6 +1340,7 @@ class DgiiReport(models.Model):
         purchase_filename = 'DGII_606_{}_{}{}.TXT'.format(company_fiscal_identificacion, str(year), str(month).zfill(2))
         self.write({'purchase_binary': purchase_binary, 'purchase_filename': purchase_filename})
 
+        ''' ************************ 608 TXT REPORT ******************************** '''
         path = '/tmp/608{}.txt'.format(company_fiscal_identificacion)
         file = open(path, 'w')
         lines = []
