@@ -480,18 +480,18 @@ class DgiiReport(models.Model):
         self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)
         payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()
 
-        if payment_rel:
-
-            payment = self.env["account.payment"].browse(payment_rel['payment_id'])
-            FECHA_PAGO = payment.payment_date
-
-        elif invoice_id.number.startswith('B04'): # This is a Credit Note
+        if invoice_id.number.startswith('B04'): # This is a Credit Note
             '''
             #TODO validate with an accountant if Credit Note require payment date.
             # If true so this is the same date when the NC was made.
             By now, one accoutant (Henry) said that he think could be the same date as NC or could be leave empty. (Aug 14th, 2018)
             '''
             FECHA_PAGO = invoice_id.date_invoice
+        
+        elif payment_rel:
+
+            payment = self.env["account.payment"].browse(payment_rel['payment_id'])
+            FECHA_PAGO = payment.payment_date
 
         else: # might be a paid with a "NOTA DE CREDITO"
             '''
@@ -592,7 +592,7 @@ class DgiiReport(models.Model):
                 pues no te darán una NC de una factura que no está pagada y por lo consiguiente si una factura fue pagada debe tener su forma de pago
                 que NO es una nota de crédito.   Quizás la opción de pago 06 = NOTA DE CREDITO del 606 es para ponerle a las NC como tal.
                 Update 1:  en Aug 14th, 2018 el contable Henry dice que si es posible esto dado que la factura puede ser a crédito de 30 o 90 días y luego el cliente
-                le pide al proveedor que le reembolse parte de esa factura por algún error.                
+                le pide al proveedor que le reembolse parte de esa factura por algún error.
                 '''
 
                 refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)])
