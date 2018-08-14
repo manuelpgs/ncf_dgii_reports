@@ -61,62 +61,62 @@
                                                 <field name="COMPRAS_CANTIDAD_REGISTRO"/>
                                             </th>
                                         </tr>
-                                        <tr class="info">
+                                        <tr class="success">
                                             <th class="tg-yw4l">MONTO TOTAL FACTURADO</th>
                                             <td class="text-center">
                                                 <field name="TOTAL_MONTO_FACTURADO"/>
                                             </td>
                                         </tr>
-                                        <tr class="info">
+                                        <tr class="success">
                                             <th class="tg-yw4l">MONTO FACTURADO SERVICIOS</th>
                                             <td class="text-center">
                                                 <field name="MONTO_FACTURADO_SERVICIOS"/>
                                             </td>
                                         </tr>                                    
-                                        <tr class="info">
+                                        <tr class="success">
                                             <th class="tg-yw4l">MONTO FACTURADO BIENES</th>
                                             <td class="text-center">
                                                 <field name="MONTO_FACTURADO_BIENES"/>
                                             </td>
                                         </tr>                                    
-                                        <tr class="info">
+                                        <tr class="success">
                                             <th class="tg-yw4l">ITBIS TOTAL EN COMPRAS</th>
                                             <td class="text-center">
                                                 <field name="ITBIS_TOTAL"/>
                                             </td>
                                         </tr>
-                                        <tr class="info">
+                                        <tr class="success">
                                             <th class="tg-yw4l">ITBIS PAGADO EN BIENES</th>
                                             <td class="text-center">
                                                 <field name="ITBIS_FACTURADO_BIENES"/>
                                             </td>
                                         </tr>
-                                        <tr class="info">
+                                        <tr class="success">
                                             <th class="tg-yw4l">ITBIS PAGADO EN SERVICIO</th>
                                             <td class="text-center">
                                                 <field name="ITBIS_FACTURADO_SERVICIOS"/>
                                             </td>
                                         </tr>                                    
-                                        <tr class="success">
-                                            <th class="tg-yw4l">NOTAS DE CRÉDITO</th>
+                                        <tr class="info">
+                                            <th class="tg-yw4l">MONTO TOTAL EN NOTAS DE CREDITO</th>
                                             <td class="text-center">
                                                 <field name="TOTAL_MONTO_NC"/>
                                             </td>
                                         </tr>
-                                        <tr class="success">
-                                            <th class="tg-yw4l">ITBIS NOTAS DE CRÉDITO</th>
+                                        <tr class="info">
+                                            <th class="tg-yw4l">ITBIS TOTAL EN NOTAS DE CRÉDITO</th>
                                             <td class="text-center">
                                                 <field name="ITBIS_TOTAL_NC"/>
                                             </td>
                                         </tr>
                                         <tr class="warning">
-                                            <th class="tg-yw4l">COMPRADO - NOTAS DE CREDITO</th>
+                                            <th class="tg-yw4l">MONTO TOTAL FACTURADO - MONTO TOTAL EN NOTAS DE CREDITO</th>
                                             <td class="text-center">
                                                 <field name="TOTAL_MONTO_PAYMENT"/>
                                             </td>
                                         </tr>
                                         <tr class="warning">
-                                            <th class="tg-yw4l">ITBIS COMPRADO - ITBIS NOTAS DE CRÉDITO</th>
+                                            <th class="tg-yw4l">ITBIS TOTAL EN COMPRAS - ITBIS TOTAL EN NOTAS DE CRÉDITO</th>
                                             <td class="text-center">
                                                 <field name="ITBIS_TOTAL_PAYMENT"/>
                                             </td>
