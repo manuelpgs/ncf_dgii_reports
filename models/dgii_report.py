@@ -447,7 +447,7 @@ class DgiiReport(models.Model):
 
     @api.multi
     def get_numero_de_comprobante_modificado(self, invoice_id):
-        
+
         NUMERO_COMPROBANTE_MODIFICADO = False
         AFFECTED_NVOICE_ID = False
 
@@ -480,18 +480,31 @@ class DgiiReport(models.Model):
         self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)
         payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()
 
-        if payment_rel:            
+        if payment_rel:
 
             payment = self.env["account.payment"].browse(payment_rel['payment_id'])
             FECHA_PAGO = payment.payment_date
 
+        elif invoice_id.number.startswith('B04'): # This is a Credit Note
+            '''
+            #TODO validate with an accountant if Credit Note require payment date.
+            # If true so this is the same date when the NC was made.
+            By now, one accoutant (Henry) said that he think could be the same date as NC or could be leave empty. (Aug 14th, 2018)
+            '''
+            FECHA_PAGO = invoice_id.date_invoice
+
         else: # might be a paid with a "NOTA DE CREDITO"
+            '''
             #TODO este else quizás no debería ser alcanzado dado que una factura no se puede pagar con una NC, en teoría...
-            # pues no te darán una NC de una factura que no está pagada y por lo consiguiente si una factura fue pagada debe tener su forma de pago
-            # que NO es una nota de crédito.   Quizás la opción de pago 06 = NOTA DE CREDITO del 606 es para ponerle a las NC como tal.
+            pues no te darán una NC de una factura que no está pagada y por lo consiguiente si una factura fue pagada debe tener su forma de pago
+            que NO es una nota de crédito.   Quizás la opción de pago 06 = NOTA DE CREDITO del 606 es para ponerle a las NC como tal.
+            Update 1:  en Aug 14th, 2018 el contable Henry dice que si es posible esto dado que la factura puede ser a crédito de 30 o 90 días y luego el cliente
+            le pide al proveedor que le reembolse parte de esa factura por algún error.
+            '''
 
             refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)], limit=1, order='refund_invoice_id desc') # the last one is the real payment day
-            if refund_invoice_id:
+
+            if refund_invoice_id: # this is the Credit Notes
                 FECHA_PAGO = refund_invoice_id.date_invoice
 
         move_id = self.env["account.move.line"].search([("move_id", "=", invoice_id.move_id.id), ('full_reconcile_id', '!=', False)]) # just one is full_reconcile_id
@@ -500,7 +513,8 @@ class DgiiReport(models.Model):
 
             if move_id:
 
-                ''' I commented the below query because when I run in my DB:
+                '''
+                I commented the below query because when I run in my DB:
                 select * from account_move_line where payment_id > 0 and invoice_id > 0 order by payment_id desc;
                 I just get four invoice and I have other Invoice with ITBIS and ISR retentions but it doesn't appears in this search....
                 '''
@@ -560,21 +574,33 @@ class DgiiReport(models.Model):
         FORMA_PAGO = '04' # 04 = COMPRA A CREDITO
 
         if invoice_id.state == "paid":
-            
+
             self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)
             payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
 
-            if not payment_rel: # could be a NOTA DE CREDITO, they don't seems store payment_id
+            if invoice_id.number.startswith('B04'): # This is a Credit Note
+                '''
+                #TODO validate with an accountant if Credit Note require Payment Method.
+                By now, one accoutant (Henry) said that he think could be the same payment method as original invoice or could be leave empty. (Aug 14th, 2018).
+                But, I think it need be just Credit Note 'cause you don't use Cash or Credit Card to pay a NC (Manuel González)
+                '''
+                FORMA_PAGO = '06' # NOTA DE CREDITO
+
+            elif not payment_rel: # could be a NOTA DE CREDITO, they don't seems store payment_id
+                '''
                 #TODO este else quizás no debería ser alcanzado dado que una factura no se puede pagar con una NC, en teoría...
-                # pues no te darán una NC de una factura que no está pagada y por lo consiguiente si una factura fue pagada debe tener su forma de pago
-                # que NO es una nota de crédito.   Quizás la opción de pago 06 = NOTA DE CREDITO del 606 es para ponerle a las NC como tal.                
+                pues no te darán una NC de una factura que no está pagada y por lo consiguiente si una factura fue pagada debe tener su forma de pago
+                que NO es una nota de crédito.   Quizás la opción de pago 06 = NOTA DE CREDITO del 606 es para ponerle a las NC como tal.
+                Update 1:  en Aug 14th, 2018 el contable Henry dice que si es posible esto dado que la factura puede ser a crédito de 30 o 90 días y luego el cliente
+                le pide al proveedor que le reembolse parte de esa factura por algún error.                
+                '''
 
                 refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)])
                 if refund_invoice_id:
                     FORMA_PAGO = '06' # 06 = NOTA DE CREDITO
-                
+
             elif len(payment_rel) > 1:
-        
+
                 FORMA_PAGO = '07' # 07 = MIXTO
 
             else:
@@ -982,7 +1008,7 @@ class DgiiReport(models.Model):
 
             '''
             ************************* ending from here need be a move to one or more custom method for cleaning and better understand. *****************************
-            '''                
+            '''
 
 
             if invoice_id.type in ("out_invoice", "out_refund") and commun_data["MONTO_FACTURADO"]:
