@@ -1169,7 +1169,7 @@ class DgiiReport(models.Model):
         purchase_file = open(pruchase_path, 'w')
         lines = []
 
-        CANTIDAD_REGISTRO = "{}".format(len(self.purchase_report)).zfill(2)        
+        CANTIDAD_REGISTRO = len(self.purchase_report)
 
         header = "606"
         header += "|"
@@ -1177,7 +1177,7 @@ class DgiiReport(models.Model):
         header += str(year)
         header += str(month).zfill(2)
         header += "|"
-        header += CANTIDAD_REGISTRO
+        header += str(CANTIDAD_REGISTRO)
         
         lines.append(header)
 
