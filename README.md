@@ -11,7 +11,10 @@ Se debe configurar correctamente los impuestos, para ello ir al listado de impue
 En cada producto, se debe configurar correctamente el "Tipo de Producto" para poder filtrar el "Monto Facturado en Servicios" y el "Monto Facturado en Bienes".  Actualmente si un producto es del tipo "Servicio" pues se suma al Monto Facturado en Servicios y si es otra cosa como puede ser Consumible o Almacenable, entonces lo sumamos al Monto Facturado en Bienes.  OJO que si venden productos digitales (como libros, fotos, etc..) en teoría serían servicios al no ser algo mateiral pero esto tampoco lo estamos filtrado en la actualidad y en dado caso de ponerlo caerían como Bienes.
 
 
-### ESTADO ACTUAL:  En desarrollo, no funcional para declaraciones aún.  Faltan agregar nuevas columnas en los reportes y hacer las pruebas de lugar.
+### ESTADO ACTUAL  
+
+- 606 en Alpha 1 (ver ISSUES AND PENDING STUFF) .
+- 607, 608 y 609 en desarrollo.
 
 ## ISSUES AND PENDING STUFF
 
