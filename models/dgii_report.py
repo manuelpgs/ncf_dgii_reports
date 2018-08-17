@@ -403,7 +403,7 @@ class DgiiReport(models.Model):
 
         error_list = []
 
-        if invoice.type == 'out_invoice':
+        if invoice.type == 'out_invoice' or invoice.number.startswith('B11'): #B11... are NCF issue by the own company, so validate them with company's RNC/CEDULA
             vat = invoice.company_id.vat
 
         if vat and len(vat) == 9 and not rnc.is_valid(vat):
