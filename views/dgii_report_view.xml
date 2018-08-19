@@ -258,49 +258,49 @@
                                 <group style="width: 100%">
                                     <table class="table table-striped table-bordered table-condensed">
                                         <tr>
-                                            <th class="tg-yw4l">Reporte 607 - Total Registros</th>
+                                            <th class="tg-yw4l">Total Registros</th>
                                             <th class="text-center">
                                                 <field name="VENTAS_CANTIDAD_REGISTRO"/>
                                             </th>
                                         </tr>
-                                        <tr class="info">
-                                            <th class="tg-yw4l">INGRESOS</th>
+                                        <tr class="success">
+                                            <th class="tg-yw4l">MONTO TOTAL DE VENTAS</th>
                                             <td class="text-center">
                                                 <field name="SALE_TOTAL_MONTO_FACTURADO"/>
                                             </td>
                                         </tr>
-                                        <tr class="info">
-                                            <th class="tg-yw4l">ITBIS COBRADO</th>
+                                        <tr class="success">
+                                            <th class="tg-yw4l">ITBIS TOTAL EN VENTAS</th>
                                             <td class="text-center">
                                                 <field name="SALE_ITBIS_TOTAL"/>
                                             </td>
                                         </tr>
-                                        <tr class="success">
-                                            <th class="tg-yw4l">NOTAS DE CRÉDITO</th>
+                                        <tr class="info">
+                                            <th class="tg-yw4l">MONTO TOTAL EN NOTAS DE CREDITO</th>
                                             <td class="text-center">
                                                 <field name="SALE_TOTAL_MONTO_NC"/>
                                             </td>
                                         </tr>
-                                        <tr class="success">
-                                            <th class="tg-yw4l">ITBIS NOTAS DE CRÉDITO</th>
+                                        <tr class="info">
+                                            <th class="tg-yw4l">ITBIS TOTAL EN NOTAS DE CRÉDITO</th>
                                             <td class="text-center">
                                                 <field name="SALE_ITBIS_NC"/>
                                             </td>
                                         </tr>
                                         <tr class="warning">
-                                            <th class="tg-yw4l">INGRESOS - NOTAS DE CREDITO</th>
+                                            <th class="tg-yw4l">MONTO TOTAL DE VENTAS - MONTO TOTAL EN NOTAS DE CREDITO</th>
                                             <td class="text-center">
                                                 <field name="SALE_TOTAL_MONTO_CHARGED"/>
                                             </td>
                                         </tr>
                                         <tr class="warning">
-                                            <th class="tg-yw4l">ITBIS COBRADO- ITBIS NOTAS DE CRÉDITO</th>
+                                            <th class="tg-yw4l">ITBIS TOTAL EN VENTAS - ITBIS TOTAL EN NOTAS DE CRÉDITO</th>
                                             <td class="text-center">
                                                 <field name="SALE_ITBIS_CHARGED"/>
                                             </td>
                                         </tr>
-                                        <tr>
-                                            <th class="tg-yw4l">TOTAL DE INGRESOS EXENTOS</th>
+                                        <tr class="danger">
+                                            <th class="tg-yw4l">MONTO TOTAL DE VENTAS EXENTAS</th>
                                             <td class="text-center">
                                                 <field name="MONTO_FACTURADO_EXCENTO"/>
                                             </td>
