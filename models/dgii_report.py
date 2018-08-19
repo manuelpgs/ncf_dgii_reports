@@ -60,7 +60,7 @@ except(ImportError, IOError) as err:
 class DgiiReport(models.Model):
     _name = "dgii.report"
     _inherit = ['mail.thread', 'ir.needaction_mixin']
-    _order = "name"
+    _order = "name"    
 
     @api.multi
     @api.depends("purchase_report")
@@ -114,16 +114,16 @@ class DgiiReport(models.Model):
                     rec.TOTAL_MONTO_NC += purchase.MONTO_FACTURADO
                     rec.ITBIS_RETENIDO -= purchase.ITBIS_RETENIDO
                     rec.ITBIS_FACTURADO_SERVICIOS -= purchase.ITBIS_FACTURADO_SERVICIOS
-                    rec.ITBIS_FACTURADO_BIENES -= purchase.ITBIS_FACTURADO_BIENES #TODO validate if this line is necessary
-                    rec.ITBIS_SUJETO_PROPORCIONALIDAD -= purchase.ITBIS_SUJETO_PROPORCIONALIDAD #TODO validate if this line is necessary
-                    rec.ITBIS_LLEVADO_ALCOSTO -= purchase.ITBIS_LLEVADO_ALCOSTO #TODO validate if this line is necessary
-                    rec.ITBIS_POR_ADELANTAR -= purchase.ITBIS_POR_ADELANTAR #TODO validate if this line is necessary
-                    rec.ITBIS_PERCIBIDO_COMPRAS -= purchase.ITBIS_PERCIBIDO_COMPRAS #TODO validate if this line is necessary
+                    rec.ITBIS_FACTURADO_BIENES -= purchase.ITBIS_FACTURADO_BIENES
+                    rec.ITBIS_SUJETO_PROPORCIONALIDAD -= purchase.ITBIS_SUJETO_PROPORCIONALIDAD
+                    rec.ITBIS_LLEVADO_ALCOSTO -= purchase.ITBIS_LLEVADO_ALCOSTO
+                    rec.ITBIS_POR_ADELANTAR -= purchase.ITBIS_POR_ADELANTAR
+                    rec.ITBIS_PERCIBIDO_COMPRAS -= purchase.ITBIS_PERCIBIDO_COMPRAS
                     rec.RETENCION_RENTA -= purchase.RETENCION_RENTA
-                    rec.ISR_PERCIBIDO_COMPRAS -= purchase.ISR_PERCIBIDO_COMPRAS #TODO validate if this line is necessary
-                    rec.IMPUESTO_ISC -= purchase.IMPUESTO_ISC #TODO validate if this line is necessary
-                    rec.IMPUESTO_OTROS -= purchase.IMPUESTO_OTROS #TODO validate if this line is necessary
-                    rec.MONTO_PROPINA_LEGAL -= purchase.MONTO_PROPINA_LEGAL #TODO validate if this line is necessary
+                    rec.ISR_PERCIBIDO_COMPRAS -= purchase.ISR_PERCIBIDO_COMPRAS
+                    rec.IMPUESTO_ISC -= purchase.IMPUESTO_ISC
+                    rec.IMPUESTO_OTROS -= purchase.IMPUESTO_OTROS
+                    rec.MONTO_PROPINA_LEGAL -= purchase.MONTO_PROPINA_LEGAL
                 elif purchase.NUMERO_COMPROBANTE_MODIFICADO == False:
                     rec.TOTAL_MONTO_FACTURADO += purchase.MONTO_FACTURADO
                     rec.MONTO_FACTURADO_SERVICIOS += purchase.MONTO_FACTURADO_SERVICIOS
@@ -233,112 +233,6 @@ class DgiiReport(models.Model):
             rec.CANCEL_CANTIDAD_REGISTRO = rec.cancel_report and len(rec.cancel_report)
             rec.EXTERIOR_CANTIDAD_REGISTRO = rec.exterior_filename and len(rec.exterior_report)
 
-    company_id = fields.Many2one('res.company', 'EMPRESA', required=False,
-                                 default=lambda self: self.env.user.company_id)
-    name = fields.Char(string=u"PERÍODO MES/AÑO", required=True, unique=True, index=True)
-    positive_balance = fields.Float(u"SALDO A FAVOR ANTERIOR", required=True)
-
-    it_filename = fields.Char()
-    it_binary = fields.Binary(string=u"Archivo excel IT-1")
-
-    ir17_filename = fields.Char()
-    ir17_binary = fields.Binary(string=u"Archivo excel IR-17")
-
-    # 606
-    COMPRAS_CANTIDAD_REGISTRO = fields.Integer(u"Cantidad de registros", compute=_count_records)
-
-    TOTAL_MONTO_FACTURADO = fields.Float(u"Monto compra", compute=_purchase_report_totals)
-    MONTO_FACTURADO_SERVICIOS = fields.Float(u"Monto Facturado Servicios", compute=_purchase_report_totals)
-    MONTO_FACTURADO_BIENES = fields.Float(u"Monto Facturado Bienes", compute=_purchase_report_totals)
-
-    ITBIS_TOTAL = fields.Float(u"ITBIS Compras", compute=_purchase_report_totals)
-    ITBIS_FACTURADO_SERVICIOS = fields.Float(u"ITBIS Facturado Servicios", compute=_purchase_report_totals)
-    ITBIS_FACTURADO_BIENES = fields.Float(u"ITBIS Facturado Bienes", compute=_purchase_report_totals)
-
-    TOTAL_MONTO_NC = fields.Float(u"Notas de crédito", compute=_purchase_report_totals)
-    ITBIS_TOTAL_NC = fields.Float(u"ITBIS Notas de crédito", compute=_purchase_report_totals)
-
-    TOTAL_MONTO_PAYMENT = fields.Float(u"Total monto facturado", compute=_purchase_report_totals)
-    ITBIS_TOTAL_PAYMENT = fields.Float(u"ITBIS Pagado", compute=_purchase_report_totals)
-
-    ITBIS_RETENIDO = fields.Float(u"ITBIS Retenido", compute=_purchase_report_totals)
-    RETENCION_RENTA = fields.Float(u"Retención Renta", compute=_purchase_report_totals)
-
-    purchase_report = fields.One2many(u"dgii.report.purchase.line", "dgii_report_id")
-    purchase_filename = fields.Char()
-    purchase_binary = fields.Binary(string=u"Archivo 606 TXT")
-
-    # 606 type summary
-    currency_id = fields.Many2one(related="company_id.currency_id")
-
-    pcount_01 = fields.Integer(compute=_purchase_report_totals)
-    pcount_02 = fields.Integer(compute=_purchase_report_totals)
-    pcount_03 = fields.Integer(compute=_purchase_report_totals)
-    pcount_04 = fields.Integer(compute=_purchase_report_totals)
-    pcount_05 = fields.Integer(compute=_purchase_report_totals)
-    pcount_06 = fields.Integer(compute=_purchase_report_totals)
-    pcount_07 = fields.Integer(compute=_purchase_report_totals)
-    pcount_08 = fields.Integer(compute=_purchase_report_totals)
-    pcount_09 = fields.Integer(compute=_purchase_report_totals)
-    pcount_10 = fields.Integer(compute=_purchase_report_totals)
-    pcount_11 = fields.Integer(compute=_purchase_report_totals)
-
-    pamount_01 = fields.Monetary(compute=_purchase_report_totals)
-    pamount_02 = fields.Monetary(compute=_purchase_report_totals)
-    pamount_03 = fields.Monetary(compute=_purchase_report_totals)
-    pamount_04 = fields.Monetary(compute=_purchase_report_totals)
-    pamount_05 = fields.Monetary(compute=_purchase_report_totals)
-    pamount_06 = fields.Monetary(compute=_purchase_report_totals)
-    pamount_07 = fields.Monetary(compute=_purchase_report_totals)
-    pamount_08 = fields.Monetary(compute=_purchase_report_totals)
-    pamount_09 = fields.Monetary(compute=_purchase_report_totals)
-    pamount_10 = fields.Monetary(compute=_purchase_report_totals)
-    pamount_11 = fields.Monetary(compute=_purchase_report_totals)
-
-    # 607
-    VENTAS_CANTIDAD_REGISTRO = fields.Integer(u"Cantidad de registros", compute=_count_records)
-
-    SALE_TOTAL_MONTO_FACTURADO = fields.Float(u"Total Facturado", compute=_sale_report_totals)
-    SALE_ITBIS_TOTAL = fields.Float(u"ITBIS ventas", compute=_sale_report_totals)
-
-    SALE_TOTAL_MONTO_NC = fields.Float(u"Total Notas de crédito", compute=_sale_report_totals)
-    SALE_ITBIS_NC = fields.Float(u"ITBIS Notas de crédito", compute=_sale_report_totals)
-
-    SALE_TOTAL_MONTO_CHARGED = fields.Float(u"Facturado", compute=_sale_report_totals)
-    SALE_ITBIS_CHARGED = fields.Float(u"ITBIS Cobrado", compute=_sale_report_totals)
-    MONTO_FACTURADO_EXCENTO = fields.Float(u"ITBIS Cobrado", compute=_sale_report_totals)
-
-    sale_filename = fields.Char()
-    sale_binary = fields.Binary(string=u"Archivo 607 TXT")
-
-    sale_report = fields.One2many("dgii.report.sale.line", "dgii_report_id")
-
-    # 607 type summary
-    count_final = fields.Integer(compute=_sale_report_totals)
-    count_fiscal = fields.Integer(compute=_sale_report_totals)
-    count_gov = fields.Integer(compute=_sale_report_totals)
-    count_special = fields.Integer(compute=_sale_report_totals)
-    count_unico = fields.Integer(compute=_sale_report_totals)
-    amount_final = fields.Integer(compute=_sale_report_totals)
-    amount_fiscal = fields.Integer(compute=_sale_report_totals)
-    amount_gov = fields.Integer(compute=_sale_report_totals)
-    amount_special = fields.Integer(compute=_sale_report_totals)
-    amount_unico = fields.Integer(compute=_sale_report_totals)
-
-    # 608
-    CANCEL_CANTIDAD_REGISTRO = fields.Integer(u"Cantidad de registros", compute=_count_records)
-    cancel_report = fields.One2many("dgii.cancel.report.line", "dgii_report_id")
-    cancel_filename = fields.Char()
-    cancel_binary = fields.Binary(string=u"Archivo 608 TXT")
-
-    # 609
-    EXTERIOR_CANTIDAD_REGISTRO = fields.Integer(u"Cantidad de registros", compute=_count_records)
-    EXTERIOR_TOTAL_MONTO_FACTURADO = fields.Float()
-    exterior_report = fields.One2many("dgii.exterior.report.line", "dgii_report_id")
-    exterior_filename = fields.Char(u"Total Monto Facturado")
-    exterior_binary = fields.Binary(string=u"Archivo 607 TXT")
-
-    state = fields.Selection([('draft', 'Nuevo'), ('error', 'Con errores'), ('done', 'Validado')], default="draft")
 
     def get_invoice_in_draft_error(self, invoice_ids):
         error_list = {}
@@ -1375,6 +1269,116 @@ class DgiiReport(models.Model):
             return purchase.NUMERO_COMPROBANTE_FISCAL[1:3]
 
 
+    '''
+        ************ Model Properties ************
+    '''                    
+
+    company_id = fields.Many2one('res.company', 'EMPRESA', required=False,
+                                 default=lambda self: self.env.user.company_id)
+    name = fields.Char(string=u"PERÍODO MES/AÑO", required=True, unique=True, index=True)
+    positive_balance = fields.Float(u"SALDO A FAVOR ANTERIOR", required=True)
+
+    it_filename = fields.Char()
+    it_binary = fields.Binary(string=u"Archivo excel IT-1")
+
+    ir17_filename = fields.Char()
+    ir17_binary = fields.Binary(string=u"Archivo excel IR-17")
+
+    # 606
+    COMPRAS_CANTIDAD_REGISTRO = fields.Integer(u"Cantidad de registros", compute=_count_records)
+
+    TOTAL_MONTO_FACTURADO = fields.Float(u"Monto compra", compute=_purchase_report_totals)
+    MONTO_FACTURADO_SERVICIOS = fields.Float(u"Monto Facturado Servicios", compute=_purchase_report_totals)
+    MONTO_FACTURADO_BIENES = fields.Float(u"Monto Facturado Bienes", compute=_purchase_report_totals)
+
+    ITBIS_TOTAL = fields.Float(u"ITBIS Compras", compute=_purchase_report_totals)
+    ITBIS_FACTURADO_SERVICIOS = fields.Float(u"ITBIS Facturado Servicios", compute=_purchase_report_totals)
+    ITBIS_FACTURADO_BIENES = fields.Float(u"ITBIS Facturado Bienes", compute=_purchase_report_totals)
+
+    TOTAL_MONTO_NC = fields.Float(u"Notas de crédito", compute=_purchase_report_totals)
+    ITBIS_TOTAL_NC = fields.Float(u"ITBIS Notas de crédito", compute=_purchase_report_totals)
+
+    TOTAL_MONTO_PAYMENT = fields.Float(u"Total monto facturado", compute=_purchase_report_totals)
+    ITBIS_TOTAL_PAYMENT = fields.Float(u"ITBIS Pagado", compute=_purchase_report_totals)
+
+    ITBIS_RETENIDO = fields.Float(u"ITBIS Retenido", compute=_purchase_report_totals)
+    RETENCION_RENTA = fields.Float(u"Retención Renta", compute=_purchase_report_totals)
+
+    purchase_report = fields.One2many(u"dgii.report.purchase.line", "dgii_report_id")
+    purchase_filename = fields.Char()
+    purchase_binary = fields.Binary(string=u"Archivo TXT del Reporte 606")
+
+    # 606 type summary
+    currency_id = fields.Many2one(related="company_id.currency_id")
+
+    pcount_01 = fields.Integer(compute=_purchase_report_totals)
+    pcount_02 = fields.Integer(compute=_purchase_report_totals)
+    pcount_03 = fields.Integer(compute=_purchase_report_totals)
+    pcount_04 = fields.Integer(compute=_purchase_report_totals)
+    pcount_05 = fields.Integer(compute=_purchase_report_totals)
+    pcount_06 = fields.Integer(compute=_purchase_report_totals)
+    pcount_07 = fields.Integer(compute=_purchase_report_totals)
+    pcount_08 = fields.Integer(compute=_purchase_report_totals)
+    pcount_09 = fields.Integer(compute=_purchase_report_totals)
+    pcount_10 = fields.Integer(compute=_purchase_report_totals)
+    pcount_11 = fields.Integer(compute=_purchase_report_totals)
+
+    pamount_01 = fields.Monetary(compute=_purchase_report_totals)
+    pamount_02 = fields.Monetary(compute=_purchase_report_totals)
+    pamount_03 = fields.Monetary(compute=_purchase_report_totals)
+    pamount_04 = fields.Monetary(compute=_purchase_report_totals)
+    pamount_05 = fields.Monetary(compute=_purchase_report_totals)
+    pamount_06 = fields.Monetary(compute=_purchase_report_totals)
+    pamount_07 = fields.Monetary(compute=_purchase_report_totals)
+    pamount_08 = fields.Monetary(compute=_purchase_report_totals)
+    pamount_09 = fields.Monetary(compute=_purchase_report_totals)
+    pamount_10 = fields.Monetary(compute=_purchase_report_totals)
+    pamount_11 = fields.Monetary(compute=_purchase_report_totals)
+
+    # 607
+    VENTAS_CANTIDAD_REGISTRO = fields.Integer(u"Cantidad de registros", compute=_count_records)
+
+    SALE_TOTAL_MONTO_FACTURADO = fields.Float(u"Total Facturado", compute=_sale_report_totals)
+    SALE_ITBIS_TOTAL = fields.Float(u"ITBIS ventas", compute=_sale_report_totals)
+
+    SALE_TOTAL_MONTO_NC = fields.Float(u"Total Notas de crédito", compute=_sale_report_totals)
+    SALE_ITBIS_NC = fields.Float(u"ITBIS Notas de crédito", compute=_sale_report_totals)
+
+    SALE_TOTAL_MONTO_CHARGED = fields.Float(u"Facturado", compute=_sale_report_totals)
+    SALE_ITBIS_CHARGED = fields.Float(u"ITBIS Cobrado", compute=_sale_report_totals)
+    MONTO_FACTURADO_EXCENTO = fields.Float(u"ITBIS Cobrado", compute=_sale_report_totals)
+
+    sale_filename = fields.Char()
+    sale_binary = fields.Binary(string=u"Archivo 607 TXT")
+
+    sale_report = fields.One2many("dgii.report.sale.line", "dgii_report_id")
+
+    # 607 type summary
+    count_final = fields.Integer(compute=_sale_report_totals)
+    count_fiscal = fields.Integer(compute=_sale_report_totals)
+    count_gov = fields.Integer(compute=_sale_report_totals)
+    count_special = fields.Integer(compute=_sale_report_totals)
+    count_unico = fields.Integer(compute=_sale_report_totals)
+    amount_final = fields.Integer(compute=_sale_report_totals)
+    amount_fiscal = fields.Integer(compute=_sale_report_totals)
+    amount_gov = fields.Integer(compute=_sale_report_totals)
+    amount_special = fields.Integer(compute=_sale_report_totals)
+    amount_unico = fields.Integer(compute=_sale_report_totals)
+
+    # 608
+    CANCEL_CANTIDAD_REGISTRO = fields.Integer(u"Cantidad de registros", compute=_count_records)
+    cancel_report = fields.One2many("dgii.cancel.report.line", "dgii_report_id")
+    cancel_filename = fields.Char()
+    cancel_binary = fields.Binary(string=u"Archivo 608 TXT")
+
+    # 609
+    EXTERIOR_CANTIDAD_REGISTRO = fields.Integer(u"Cantidad de registros", compute=_count_records)
+    EXTERIOR_TOTAL_MONTO_FACTURADO = fields.Float()
+    exterior_report = fields.One2many("dgii.exterior.report.line", "dgii_report_id")
+    exterior_filename = fields.Char(u"Total Monto Facturado")
+    exterior_binary = fields.Binary(string=u"Archivo 607 TXT")
+
+    state = fields.Selection([('draft', 'Nuevo'), ('error', 'Con errores'), ('done', 'Validado')], default="draft")            
 
 
 
