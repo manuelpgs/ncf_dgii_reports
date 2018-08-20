@@ -429,7 +429,7 @@
                                     <tree>
                                         <field name="LINE"/>
                                         <field name="inv_partner"/>
-                                        <field name="TIPO_IDENTIFICACION"/>
+                                        <field name="TIPO_IDENTIFICACION_STR"/>
                                         <field name="TIPO_BIENES_SERVICIOS_COMPRADOS"/>
                                         <field name="number"/>
                                         <field name="NUMERO_COMPROBANTE_MODIFICADO"/>
@@ -450,7 +450,7 @@
                                         <field name="IMPUESTO_ISC" sum="Total ISC"/>
                                         <field name="IMPUESTO_OTROS" sum="Total Otros Impuestos (CDT)"/>
                                         <field name="MONTO_PROPINA_LEGAL" sum="Total Propina Legal (10%)"/>
-                                        <field name="FORMA_PAGO" />
+                                        <field name="FORMA_PAGO_STR" />
                                     </tree>
                                 </field>
                             </page>

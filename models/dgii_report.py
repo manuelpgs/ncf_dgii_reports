@@ -1385,6 +1385,32 @@ class DgiiReport(models.Model):
 class DgiiReportPurchaseLine(models.Model):
     _name = "dgii.report.purchase.line"
 
+    def get_str_forma_pago(self, FORMA_PAGO):
+
+        FORMA_PAGO_STR = FORMA_PAGO
+
+        if FORMA_PAGO == '01':
+            FORMA_PAGO_STR = 'Efectivo (01)'
+        elif FORMA_PAGO == '02':
+            FORMA_PAGO_STR = 'Ch/Trans/Dep. (02)'
+        elif FORMA_PAGO == '03':
+            FORMA_PAGO_STR = 'TC/TD (03)'
+        elif FORMA_PAGO == '04':
+            FORMA_PAGO_STR = 'Compra cred. (04)'
+        elif FORMA_PAGO == '05':
+            FORMA_PAGO_STR = 'Permuta (05)'
+        elif FORMA_PAGO == '06':
+            FORMA_PAGO_STR = 'Nota cred. (06)'
+        elif FORMA_PAGO == '07':
+            FORMA_PAGO_STR = 'Mixto (07)'        
+
+        return FORMA_PAGO_STR
+
+    def _get_str(self):
+        for rec in self:
+            rec.TIPO_IDENTIFICACION_STR = "RNC (1)" if rec.TIPO_IDENTIFICACION == '1' else "C.I. (2)"
+            rec.FORMA_PAGO_STR = self.get_str_forma_pago(rec.FORMA_PAGO)    
+
     dgii_report_id = fields.Many2one("dgii.report")
     LINE = fields.Integer(u"Línea")
     TIPO_BIENES_SERVICIOS_COMPRADOS = fields.Char(u"3 - Tipo Bienes/Servicios", size=2)
@@ -1418,6 +1444,9 @@ class DgiiReportPurchaseLine(models.Model):
     inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="1 - Proveedor")
     affected_nvoice_id = fields.Many2one("account.invoice", "Relacionado NCF Modificado")
     nc = fields.Boolean()
+
+    TIPO_IDENTIFICACION_STR = fields.Char(u"2 - Tipo Identificación", compute=_get_str)
+    FORMA_PAGO_STR = fields.Char(u"23 - Forma de Pago", compute=_get_str, size=20)
 
 
 class DgiiReportSaleLine(models.Model):
