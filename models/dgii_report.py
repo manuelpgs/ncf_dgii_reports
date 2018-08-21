@@ -1412,7 +1412,7 @@ class DgiiReportPurchaseLine(models.Model):
             rec.FORMA_PAGO_STR = self.get_str_forma_pago(rec.FORMA_PAGO)    
 
     dgii_report_id = fields.Many2one("dgii.report")
-    LINE = fields.Integer(u"Línea")
+    LINE = fields.Integer("Line")
     TIPO_BIENES_SERVICIOS_COMPRADOS = fields.Char(u"3 - Tipo Bienes/Servicios", size=2)
     RNC_CEDULA = fields.Char(u"1 - RNC", size=11)
     TIPO_IDENTIFICACION = fields.Char(u"2 - Tipo Identificación", size=1)
@@ -1453,22 +1453,39 @@ class DgiiReportSaleLine(models.Model):
     _name = "dgii.report.sale.line"
 
     dgii_report_id = fields.Many2one("dgii.report")
-    LINE = fields.Integer("Linea")
-    RNC_CEDULA = fields.Char(u"RNC", size=11)
-    TIPO_IDENTIFICACION = fields.Char(u"Tipo Identificación", size=1)
-    NUMERO_COMPROBANTE_FISCAL = fields.Char("NCF", size=19)
-    NUMERO_COMPROBANTE_MODIFICADO = fields.Char(u"NCF Modificado", size=19)
-    FECHA_COMPROBANTE = fields.Date(u"Fecha NCF")
-    ITBIS_FACTURADO = fields.Float(u"ITBIS Facturado")
-    MONTO_FACTURADO = fields.Float(u"Monto Facturado")
-    MONTO_FACTURADO_EXCENTO = fields.Float(u"Monto Facturado Exento")
+    LINE = fields.Integer("Line")
+    RNC_CEDULA = fields.Char(u"1 - RNC", size=11)
+    TIPO_IDENTIFICACION = fields.Char(u"2 - Tipo Identificación", size=1)
+    NUMERO_COMPROBANTE_FISCAL = fields.Char("3 - NCF", size=19)
+    NUMERO_COMPROBANTE_MODIFICADO = fields.Char(u"4 - NCF Modificado", size=19)
+    TIPO_DE_INGRESO = fields.Integer("5 - Tipo de Ingreso") #new
+    FECHA_COMPROBANTE = fields.Date(u"6 - Fecha NCF")
+    FECHA_RETENCION = fields.Date(u"7 - Fecha Retención") #new
+    MONTO_FACTURADO = fields.Float(u"8 - Monto Facturado")
+    ITBIS_FACTURADO = fields.Float(u"9 - ITBIS Facturado")
+    ITBIS_RETENIDO_POR_TERCEROS = fields.Float(u"10 - ITBIS Retenido") #new
+    ITBIS_PERCIBIDO = fields.Float(u"11 - ITBIS Percibido") #new
+    RETENCION_RENTA_POR_TERCEROS = fields.Float(u"12 - Retención Renta") #new
+    ISR_PERCIBIDO = fields.Float(u"13 - ISR Percibido") #new
+    IMPUESTO_SELECTIVO_CONSUMO = fields.Float(u"14 - ISC") #new
+    IMPUESTOS_OTROS = fields.Float(u"15 - OTROS IMP.") #new
+    MONTO_PROPINA_LEGAL = fields.Float(u"16 - Prop. Legal") #new
+    MONTOS_PAGADOS_EFECTIVO = fields.Float(u"17 - Efectivo") #new
+    MONTOS_PAGADOS_BANCO = fields.Float(u"18 - CH/TRANS/DEPT") #new
+    MONTOS_PAGADOS_TARJETAS = fields.Float(u"19 - Tarjetas") #new
+    MONTOS_A_CREDITO = fields.Float(u"20 - A Crédito") #new
+    MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS = fields.Float(u"21 - Bonos/Regalos") #new
+    MONTOS_EN_PERMUTA = fields.Float(u"22 - Permuta") #new
+    MONTOS_EN_OTRAS_FORMAS_VENTAS = fields.Float(u"23 - Permuta") #new
+
+    MONTO_FACTURADO_EXCENTO = fields.Float(u"Monto Facturado Exento") #NO USADO EN 607
 
     invoice_id = fields.Many2one("account.invoice", "NCF")
     currency_id = fields.Many2one('res.currency', string='Currency', related="invoice_id.currency_id",
                                   required=True, readonly=True, states={'draft': [('readonly', False)]},
-                                  track_visibility='always') #todo validate to remove
+                                  track_visibility='always') #todo validate to remove, IT IS NOT IN THE DB.
 
-    number = fields.Char(related="invoice_id.number", string=" NCF") #todo validate to remove
+    number = fields.Char(related="invoice_id.number", string=" NCF") #todo validate to remove, IT IS NOT IN THE DB.
     inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="Cliente")
     affected_nvoice_id = fields.Many2one("account.invoice", "NCF Modificado")
     nc = fields.Boolean()
