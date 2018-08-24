@@ -448,7 +448,7 @@
                                         <field name="RETENCION_RENTA" sum="Total Retención Renta"/>
                                         <field name="ISR_PERCIBIDO_COMPRAS" sum="Total ISR Percibido en Compras"/>
                                         <field name="IMPUESTO_ISC" sum="Total ISC"/>
-                                        <field name="IMPUESTO_OTROS" sum="Total Otros Impuestos (CDT)"/>
+                                        <field name="IMPUESTOS_OTROS" sum="Total Otros Impuestos (CDT)"/>
                                         <field name="MONTO_PROPINA_LEGAL" sum="Total Propina Legal (10%)"/>
                                         <field name="FORMA_PAGO_STR" />
                                     </tree>
