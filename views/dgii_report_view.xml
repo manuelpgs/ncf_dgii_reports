@@ -462,9 +462,25 @@
                                         <field name="TIPO_IDENTIFICACION"/>
                                         <field name="number"/>
                                         <field name="NUMERO_COMPROBANTE_MODIFICADO"/>
+                                        <field name="TIPO_DE_INGRESO"/>
                                         <field name="FECHA_COMPROBANTE"/>
-                                        <field name="ITBIS_FACTURADO" sum="Total ITBIS Facturado"/>
+                                        <field name="FECHA_RETENCION"/>
                                         <field name="MONTO_FACTURADO" sum="Total Monto Facturado"/>
+                                        <field name="ITBIS_FACTURADO" sum="Total ITBIS Facturado"/>
+                                        <field name="ITBIS_RETENIDO_POR_TERCEROS" sum="Total ITBIS Retenido"/>
+                                        <field name="ITBIS_PERCIBIDO" sum="Total ITBIS Percebido"/>
+                                        <field name="RETENCION_RENTA_POR_TERCEROS" sum="Total Retención Renta"/>
+                                        <field name="ISR_PERCIBIDO" sum="Total ISR Percibido"/>
+                                        <field name="IMPUESTO_ISC" sum="Total ISC"/>
+                                        <field name="IMPUESTOS_OTROS" sum="Total Otros Impuestos"/>
+                                        <field name="MONTO_PROPINA_LEGAL" sum="Total 10% Ley"/>
+                                        <field name="MONTOS_PAGADOS_EFECTIVO" sum="Total Efectivo"/>
+                                        <field name="MONTOS_PAGADOS_BANCO" sum="Total Banco"/>
+                                        <field name="MONTOS_PAGADOS_TARJETAS" sum="Total Tarjetas"/>
+                                        <field name="MONTOS_A_CREDITO" sum="Total a Crédito"/>
+                                        <field name="MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS" sum="Total en Bonos"/>
+                                        <field name="MONTOS_EN_PERMUTA" sum="Total en Permuta"/>
+                                        <field name="MONTOS_EN_OTRAS_FORMAS_VENTAS" sum="Total en Otras Formas"/>
                                         <field name="MONTO_FACTURADO_EXCENTO" sum="Total Monto Facturado exento"/>
                                     </tree>
                                 </field>

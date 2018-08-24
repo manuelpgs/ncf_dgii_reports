@@ -519,12 +519,38 @@ class DgiiReport(models.Model):
 
     @api.multi
     def create_sales_lines(self, data):
-        dataText = ','.join(self.env.cr.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', row) for row in data)
+        dataText = ','.join(self.env.cr.mogrify('(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', row) for row in data)
 
         sale_insert_sql = """
-                        INSERT INTO dgii_report_sale_line ("dgii_report_id","LINE","RNC_CEDULA","TIPO_IDENTIFICACION",
-                        "NUMERO_COMPROBANTE_FISCAL","NUMERO_COMPROBANTE_MODIFICADO","FECHA_COMPROBANTE","ITBIS_FACTURADO","MONTO_FACTURADO",
-                        "MONTO_FACTURADO_EXCENTO","invoice_id","affected_nvoice_id","nc") values {}
+                        INSERT INTO dgii_report_sale_line ("dgii_report_id",
+                        "LINE",
+                        "RNC_CEDULA",
+                        "TIPO_IDENTIFICACION",
+                        "NUMERO_COMPROBANTE_FISCAL",
+                        "NUMERO_COMPROBANTE_MODIFICADO",
+                        "TIPO_DE_INGRESO",
+                        "FECHA_COMPROBANTE",
+                        "FECHA_RETENCION",
+                        "MONTO_FACTURADO",
+                        "ITBIS_FACTURADO",
+                        "ITBIS_RETENIDO_POR_TERCEROS",
+                        "ITBIS_PERCIBIDO",
+                        "RETENCION_RENTA_POR_TERCEROS",
+                        "ISR_PERCIBIDO",
+                        "IMPUESTO_ISC",
+                        "IMPUESTOS_OTROS",
+                        "MONTO_PROPINA_LEGAL",
+                        "MONTOS_PAGADOS_EFECTIVO",
+                        "MONTOS_PAGADOS_BANCO",
+                        "MONTOS_PAGADOS_TARJETAS",
+                        "MONTOS_A_CREDITO",
+                        "MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS",
+                        "MONTOS_EN_PERMUTA",
+                        "MONTOS_EN_OTRAS_FORMAS_VENTAS",
+                        "MONTO_FACTURADO_EXCENTO",
+                        "invoice_id",
+                        "affected_nvoice_id",
+                        "nc") values {}
                         """.format(dataText)
         self.env.cr.execute(sale_insert_sql)
 
@@ -697,8 +723,6 @@ class DgiiReport(models.Model):
                 if invoiceMonth != paidMonth and invoiceMonth == periodMonth:
                     FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = False
 
-            FORMA_PAGO = self.get_format_pago(invoice_id) if invoice_id.type in ("in_invoice", "in_refund") else False
-
             ''' This is one line in 606 or 607 report '''
             commun_data = {
                 "RNC_CEDULA": RNC_CEDULA, # 606, 607
@@ -728,16 +752,23 @@ class DgiiReport(models.Model):
                 "TIPO_RETENCION_ISR": TIPO_RETENCION_ISR or None, #606
                 "RETENCION_RENTA": RETENCION_RENTA or 0, # 606
                 "ISR_PERCIBIDO_COMPRAS": 0, # 606
-                "IMPUESTO_ISC": IMPUESTO_ISC, # 606, 607 (field in 607: IMPUESTO_SELECTIVO_CONSUMO)
+                "IMPUESTO_ISC": IMPUESTO_ISC, # 606, 607
                 "IMPUESTOS_OTROS": IMPUESTOS_OTROS, # 606, 607
-                "MONTO_PROPINA_LEGAL": MONTO_PROPINA_LEGAL, # 606
-                "FORMA_PAGO": FORMA_PAGO, # 606
-                "TIPO_DE_INGRESO": None, # 607
+                "MONTO_PROPINA_LEGAL": MONTO_PROPINA_LEGAL, # 606, 607
+                "FORMA_PAGO": self.get_format_pago(invoice_id) if invoice_id.type in ("in_invoice", "in_refund") else False, # 606
+                "TIPO_DE_INGRESO": invoice_id.income_type if invoice_id.type in ("out_invoice", "out_refund") else None, # 607
                 "FECHA_RETENCION": None, # 607
                 "ITBIS_RETENIDO_POR_TERCEROS": 0, # 607
                 "ITBIS_PERCIBIDO": 0, # 607
                 "RETENCION_RENTA_POR_TERCEROS": 0, # 607
                 "ISR_PERCIBIDO": 0, # 607
+                "MONTOS_PAGADOS_EFECTIVO": 0, # 607
+                "MONTOS_PAGADOS_BANCO": 0, # 607
+                "MONTOS_PAGADOS_TARJETAS": 0, # 607
+                "MONTOS_A_CREDITO": 0, # 607
+                "MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS": 0, # 607
+                "MONTOS_EN_PERMUTA": 0, # 607
+                "MONTOS_EN_OTRAS_FORMAS_VENTAS": 0 # 607
             }
 
             '''
@@ -918,9 +949,25 @@ class DgiiReport(models.Model):
                                     commun_data["TIPO_IDENTIFICACION"],
                                     commun_data["NUMERO_COMPROBANTE_FISCAL"],
                                     commun_data["NUMERO_COMPROBANTE_MODIFICADO"] or None,
+                                    commun_data["TIPO_DE_INGRESO"],
                                     commun_data["FECHA_COMPROBANTE"],
-                                    commun_data["ITBIS_FACTURADO"],
+                                    commun_data["FECHA_RETENCION"],
                                     commun_data["MONTO_FACTURADO"],
+                                    commun_data["ITBIS_FACTURADO"],
+                                    commun_data["ITBIS_RETENIDO_POR_TERCEROS"],
+                                    commun_data["ITBIS_PERCIBIDO"],
+                                    commun_data["RETENCION_RENTA_POR_TERCEROS"],
+                                    commun_data["ISR_PERCIBIDO"],
+                                    commun_data["IMPUESTO_ISC"],
+                                    commun_data["IMPUESTOS_OTROS"],
+                                    commun_data["MONTO_PROPINA_LEGAL"],
+                                    commun_data["MONTOS_PAGADOS_EFECTIVO"],
+                                    commun_data["MONTOS_PAGADOS_BANCO"],
+                                    commun_data["MONTOS_PAGADOS_TARJETAS"],
+                                    commun_data["MONTOS_A_CREDITO"],
+                                    commun_data["MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS"],
+                                    commun_data["MONTOS_EN_PERMUTA"],
+                                    commun_data["MONTOS_EN_OTRAS_FORMAS_VENTAS"],
                                     commun_data["MONTO_FACTURADO_EXCENTO"],
                                     invoice_id.id,
                                     AFFECTED_NVOICE_ID and AFFECTED_NVOICE_ID or None,
@@ -1473,7 +1520,7 @@ class DgiiReportSaleLine(models.Model):
     ITBIS_PERCIBIDO = fields.Float(u"11 - ITBIS Percibido") #new
     RETENCION_RENTA_POR_TERCEROS = fields.Float(u"12 - Retención Renta") #new
     ISR_PERCIBIDO = fields.Float(u"13 - ISR Percibido") #new
-    IMPUESTO_SELECTIVO_CONSUMO = fields.Float(u"14 - ISC") #new
+    IMPUESTO_ISC = fields.Float(u"14 - ISC") #new
     IMPUESTOS_OTROS = fields.Float(u"15 - OTROS IMP.") #new
     MONTO_PROPINA_LEGAL = fields.Float(u"16 - Prop. Legal") #new
     MONTOS_PAGADOS_EFECTIVO = fields.Float(u"17 - Efectivo") #new
