@@ -1505,6 +1505,20 @@ class DgiiReportPurchaseLine(models.Model):
 class DgiiReportSaleLine(models.Model):
     _name = "dgii.report.sale.line"
 
+    def _get_str(self):
+
+        INCOME_TYPE = {
+            1: 'Ingresos x operaciones (1)',
+            2: 'Ingresos Financieros (2)',
+            3: 'Ingresos Extraordinarios (3)',
+            4: 'Ingresos por Arrendamientos (4)',
+            5: 'Ingresos por Venta de Activo Depreciable (5)',
+            6: 'Otros Ingresos (5)'
+        }
+
+        for rec in self:
+            rec.TIPO_DE_INGRESO_STR = INCOME_TYPE[rec.TIPO_DE_INGRESO]
+
     dgii_report_id = fields.Many2one("dgii.report")
     LINE = fields.Integer("Line")
     RNC_CEDULA = fields.Char(u"1 - RNC", size=11)
@@ -1542,6 +1556,8 @@ class DgiiReportSaleLine(models.Model):
     inv_partner = fields.Many2one("res.partner", related="invoice_id.partner_id", string="Cliente")
     affected_nvoice_id = fields.Many2one("account.invoice", "NCF Modificado")
     nc = fields.Boolean()
+
+    TIPO_DE_INGRESO_STR = fields.Char(u"5 - Tipo de Ingreso", compute=_get_str, size=50)
 
 
 class DgiiCancelReportline(models.Model):

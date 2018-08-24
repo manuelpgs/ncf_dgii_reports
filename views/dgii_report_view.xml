@@ -462,7 +462,7 @@
                                         <field name="TIPO_IDENTIFICACION"/>
                                         <field name="number"/>
                                         <field name="NUMERO_COMPROBANTE_MODIFICADO"/>
-                                        <field name="TIPO_DE_INGRESO"/>
+                                        <field name="TIPO_DE_INGRESO_STR"/>
                                         <field name="FECHA_COMPROBANTE"/>
                                         <field name="FECHA_RETENCION"/>
                                         <field name="MONTO_FACTURADO" sum="Total Monto Facturado"/>
