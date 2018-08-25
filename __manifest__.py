@@ -45,5 +45,6 @@
     'data': [
         'security/ir.model.access.csv',
         'views/dgii_report_view.xml',
+        'views/account_view.xml',
     ]
 }

@@ -617,6 +617,13 @@ class DgiiReport(models.Model):
             self.message_post(body="Generado correctamente")
             self.state = "done"
 
+    def get_607_report_data(self, invoice, commun_data):
+
+        commun_data['TIPO_DE_INGRESO'] = invoice.income_type
+
+        return commun_data
+
+
     @api.multi
     def generate_report(self):
 
@@ -756,7 +763,7 @@ class DgiiReport(models.Model):
                 "IMPUESTOS_OTROS": IMPUESTOS_OTROS, # 606, 607
                 "MONTO_PROPINA_LEGAL": MONTO_PROPINA_LEGAL, # 606, 607
                 "FORMA_PAGO": self.get_format_pago(invoice_id) if invoice_id.type in ("in_invoice", "in_refund") else False, # 606
-                "TIPO_DE_INGRESO": invoice_id.income_type if invoice_id.type in ("out_invoice", "out_refund") else None, # 607
+                "TIPO_DE_INGRESO": None, # 607
                 "FECHA_RETENCION": None, # 607
                 "ITBIS_RETENIDO_POR_TERCEROS": 0, # 607
                 "ITBIS_PERCIBIDO": 0, # 607
@@ -770,6 +777,10 @@ class DgiiReport(models.Model):
                 "MONTOS_EN_PERMUTA": 0, # 607
                 "MONTOS_EN_OTRAS_FORMAS_VENTAS": 0 # 607
             }
+
+            if invoice_id.type in ("out_invoice", "out_refund"):
+                report_607_data = self.get_607_report_data(invoice_id, commun_data)
+                commun_data = dict(commun_data, **report_607_data) # with this, we merge two dict.  All keys's values are overritten from A (commun_data) to what is set on B (report_607_data)
 
             '''
             ************************* starting from here need be a move to one or more custom method for cleaning and better understand. *****************************
@@ -1598,4 +1609,16 @@ class AccountTax(models.Model):
          ('propina_legal', 'Monto Propina Legal'),
          ('none', 'No Deducible')],
         default="none", string="Tipo de Impuesto en Compra"
+    )
+
+
+class AccountAccount(models.Model):
+    _inherit = 'account.account'
+
+    sale_tax_type = fields.Selection(
+        [('ritbis_pjuridica_n_02_05', u'ITBIS Retenido Persona Jurídica (N 02-05)'),
+         ('ritbis_provedores_inform_n_08_10', 'ITBIS Retenido a Proveedores Informales de Bienes (N 08-10)'),
+         ('ritbis_pfisica_r_293_11', u'ITBIS Retenido Persona Física (R 293-11)'),
+         ('none', 'No Aplica')],
+        default="none", string="Tipo de Impuesto en Venta"
     )
