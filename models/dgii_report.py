@@ -617,9 +617,73 @@ class DgiiReport(models.Model):
             self.message_post(body="Generado correctamente")
             self.state = "done"
 
+    '''
+        Only call this method when the invoice is paid.
+    '''
+    def get_607_itbis_retenido_and_date(self, invoice):
+        
+        FECHA_RETENCION = None
+        ITBIS_RETENIDO_POR_TERCEROS = None
+        
+        '''
+        #TODO the below query return the last payment to the invoice.
+        Whether an invoice has multiple payments, the most natural is that the last payment is that one with
+        writeoff_account_id property, because if a customer is making multiple payment to you, the most natural is
+        that you don't register any tax retention until the invoice is full paid.  So take care about this.
+
+        Att: Manuel Gonzalez <manuel@softnet.do> Ago 25, 2018.
+        '''
+        self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s order by payment_id desc limit 1" % invoice.id)
+        payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()
+
+        if payment_rel:
+            
+            payment = self.env["account.payment"].browse(payment_rel['payment_id'])            
+
+            if payment.writeoff_account_id: # this payment could have retentions...
+                '''
+                    By default the account ID 100 is "ITBIS Retenido Persona Jurídica (N 02-05)"
+                    and for a company with RNC, normally this is the kind of retentions that they have... 
+                    #TODO need be programed and tested with "Proveedores Informales" giving NCF
+
+                    But you know, some accountant could change the account and this default ID could be other
+                    and for this reason we set a new field in account_account model with name sale_tax_type
+                    and wih this avoid any confusion.
+
+                    There were other way to filter this without a new field in account_account model, but that way
+                    is so confused and the new field's solution is more direct and clear.
+                '''
+
+                if payment.writeoff_account_id.sale_tax_type == 'ritbis_pjuridica_n_02_05':
+                    '''
+                        So, go ahead and look for the retention amount in move lines...
+
+                        In the below query, we don't search by invoice_id because normally there are just 3 rows asociated with an invoice
+                        and none of them have the account_id that we need to filter (in ODOO 10), instead we are searching
+                        by the field "ref" because it is the only way that we can do it.  And we use invoice.move_name to filter because
+                        we think this is the correct way (#TODO validate this...) although normally the invoice.move_name = invoice.number
+                    '''
+
+                    account_move_line = self.env["account.move.line"].search([('ref', '=', invoice.move_name),('account_id', '=', payment.writeoff_account_id.id)])
+
+                    if account_move_line:
+                        FECHA_RETENCION = payment.payment_date # in practical terms, this is  "FECHA DE RETENCIÓN" in 607 report.
+                        ITBIS_RETENIDO_POR_TERCEROS = account_move_line.debit #TODO - We wait just one record, but take care, maybe could be more than one in some use cases what was no tested.
+
+
+        return FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS
+
+
     def get_607_report_data(self, invoice, commun_data):
 
         commun_data['TIPO_DE_INGRESO'] = invoice.income_type
+
+        if invoice.state == "paid":
+            
+            FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS = self.get_607_itbis_retenido_and_date(invoice) 
+            
+            commun_data['FECHA_RETENCION'] = FECHA_RETENCION
+            commun_data['ITBIS_RETENIDO_POR_TERCEROS'] = ITBIS_RETENIDO_POR_TERCEROS
 
         return commun_data
 
@@ -1615,6 +1679,7 @@ class AccountTax(models.Model):
 class AccountAccount(models.Model):
     _inherit = 'account.account'
 
+    #TODO we need validate with some accountant if here is necessary a list instead just a boolean field for the first option of the list.
     sale_tax_type = fields.Selection(
         [('ritbis_pjuridica_n_02_05', u'ITBIS Retenido Persona Jurídica (N 02-05)'),
          ('ritbis_provedores_inform_n_08_10', 'ITBIS Retenido a Proveedores Informales de Bienes (N 08-10)'),
