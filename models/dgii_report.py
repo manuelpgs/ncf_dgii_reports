@@ -831,7 +831,7 @@ class DgiiReport(models.Model):
                 "FECHA_RETENCION": None, # 607
                 "ITBIS_RETENIDO_POR_TERCEROS": 0, # 607
                 "ITBIS_PERCIBIDO": 0, # 607
-                "RETENCION_RENTA_POR_TERCEROS": 0, # 607
+                "RETENCION_RENTA_POR_TERCEROS": 0, # 607 #TODO by now set as 0 always... need to be set for "Proveedores Informales" giving NCF.
                 "ISR_PERCIBIDO": 0, # 607
                 "MONTOS_PAGADOS_EFECTIVO": 0, # 607
                 "MONTOS_PAGADOS_BANCO": 0, # 607
