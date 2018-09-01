@@ -463,7 +463,7 @@ class DgiiReport(models.Model):
         return IMPUESTO_ISC, IMPUESTOS_OTROS, MONTO_PROPINA_LEGAL
 
 
-    def get_format_pago(self, invoice_id):
+    def get_format_pago_compras(self, invoice_id):
 
         FORMA_PAGO = '04' # 04 = COMPRA A CREDITO
 
@@ -621,10 +621,10 @@ class DgiiReport(models.Model):
         Only call this method when the invoice is paid.
     '''
     def get_607_itbis_retenido_and_date(self, invoice):
-        
+
         FECHA_RETENCION = None
         ITBIS_RETENIDO_POR_TERCEROS = None
-        
+
         '''
         #TODO the below query return the last payment to the invoice.
         Whether an invoice has multiple payments, the most natural is that the last payment is that one with
@@ -637,13 +637,13 @@ class DgiiReport(models.Model):
         payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()
 
         if payment_rel:
-            
-            payment = self.env["account.payment"].browse(payment_rel['payment_id'])            
+
+            payment = self.env["account.payment"].browse(payment_rel['payment_id'])
 
             if payment.writeoff_account_id: # this payment could have retentions...
                 '''
                     By default the account ID 100 is "ITBIS Retenido Persona Jurídica (N 02-05)"
-                    and for a company with RNC, normally this is the kind of retentions that they have... 
+                    and for a company with RNC, normally this is the kind of retentions that they have...
                     #TODO need be programed and tested with "Proveedores Informales" giving NCF
 
                     But you know, some accountant could change the account and this default ID could be other
@@ -674,14 +674,71 @@ class DgiiReport(models.Model):
         return FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS
 
 
+    '''
+        Call this method only when the invoice is paid.
+    '''
+    def get_format_pago_ventas(self, invoice, commun_data):
+
+        self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice.id)
+        payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
+
+        if invoice.number.startswith('B04'): # This is a Credit Note
+            '''
+            #TODO validate with an accountant if Credit Note require Payment Method.
+            By now, one accoutant (Henry) said that he think could be the same payment method as original invoice or could be leave empty. (Aug 14th, 2018).
+            But, I think it need be just Credit Note 'cause you don't use Cash or Credit Card to pay a NC (Manuel González)
+            '''
+            FORMA_PAGO = '06' # NOTA DE CREDITO
+
+        elif not payment_rel: # could be a NOTA DE CREDITO, they don't seems store payment_id
+            '''
+            #TODO este else quizás no debería ser alcanzado dado que una factura no se puede pagar con una NC, en teoría...
+            pues no te darán una NC de una factura que no está pagada y por lo consiguiente si una factura fue pagada debe tener su forma de pago
+            que NO es una nota de crédito.   Quizás la opción de pago 06 = NOTA DE CREDITO del 606 es para ponerle a las NC como tal.
+            Update 1:  en Aug 14th, 2018 el contable Henry dice que si es posible esto dado que la factura puede ser a crédito de 30 o 90 días y luego el cliente
+            le pide al proveedor que le reembolse parte de esa factura por algún error.
+            '''
+
+            refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice.id)])
+            if refund_invoice_id:
+                FORMA_PAGO = '06' # 06 = NOTA DE CREDITO
+
+        else:
+
+            for prel in payment_rel:
+                
+                payment = self.env["account.payment"].browse(prel.payment_id)
+
+                if payment.journal_id.payment_form == 'cash':
+                    commun_data['MONTOS_PAGADOS_EFECTIVO'] += payment.amount
+                elif payment.journal_id.payment_form == 'bank':
+                    commun_data['MONTOS_PAGADOS_BANCO'] += payment.amount
+                elif payment.journal_id.payment_form == 'card':
+                    commun_data['MONTOS_PAGADOS_TARJETAS'] += payment.amount
+                elif payment.journal_id.payment_form == 'credit': # just in case they have a journal of credit
+                    commun_data['MONTOS_A_CREDITO'] += payment.amount
+                elif payment.journal_id.payment_form == 'bond':
+                    commun_data['MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS'] += payment.amount
+                elif payment.journal_id.payment_form == 'swap':
+                    commun_data['MONTOS_EN_PERMUTA']  += payment.amount
+                else:
+                    commun_data['MONTOS_EN_OTRAS_FORMAS_VENTAS'] += payment.amount # like Bitcoin and others
+
+        
+        return commun_data
+
+
     def get_607_report_data(self, invoice, commun_data):
 
         commun_data['TIPO_DE_INGRESO'] = invoice.income_type
 
         if invoice.state == "paid":
-            
-            FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS = self.get_607_itbis_retenido_and_date(invoice) 
-            
+
+            FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS = self.get_607_itbis_retenido_and_date(invoice)
+            formas_pagos = self.get_format_pago_ventas(invoice, commun_data)
+
+            commun_data = dict(commun_data, **formas_pagos) # with this, we merge two dict.  All keys's values are overritten from A (commun_data) to what is set on B (formas_pagos)            
+
             commun_data['FECHA_RETENCION'] = FECHA_RETENCION
             commun_data['ITBIS_RETENIDO_POR_TERCEROS'] = ITBIS_RETENIDO_POR_TERCEROS
 
@@ -826,7 +883,7 @@ class DgiiReport(models.Model):
                 "IMPUESTO_ISC": IMPUESTO_ISC, # 606, 607
                 "IMPUESTOS_OTROS": IMPUESTOS_OTROS, # 606, 607
                 "MONTO_PROPINA_LEGAL": MONTO_PROPINA_LEGAL, # 606, 607
-                "FORMA_PAGO": self.get_format_pago(invoice_id) if invoice_id.type in ("in_invoice", "in_refund") else False, # 606
+                "FORMA_PAGO": self.get_format_pago_compras(invoice_id) if invoice_id.type in ("in_invoice", "in_refund") else False, # 606
                 "TIPO_DE_INGRESO": None, # 607
                 "FECHA_RETENCION": None, # 607
                 "ITBIS_RETENIDO_POR_TERCEROS": 0, # 607
