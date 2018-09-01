@@ -707,7 +707,7 @@ class DgiiReport(models.Model):
 
             for prel in payment_rel:
                 
-                payment = self.env["account.payment"].browse(prel.payment_id)
+                payment = self.env["account.payment"].browse(prel['payment_id'])
 
                 if payment.journal_id.payment_form == 'cash':
                     commun_data['MONTOS_PAGADOS_EFECTIVO'] += payment.amount
@@ -731,8 +731,11 @@ class DgiiReport(models.Model):
     def get_607_report_data(self, invoice, commun_data):
 
         commun_data['TIPO_DE_INGRESO'] = invoice.income_type
+        commun_data['MONTOS_A_CREDITO'] = invoice.amount_total_signed # by default it is credit.  #TODO, there are too: amount_total_company_signed and amount_total. What are the differences?
 
         if invoice.state == "paid":
+
+            commun_data['MONTOS_A_CREDITO'] = 0 # if an invoice is paid, it can't have any amount as a credit. #TODO or yes?
 
             FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS = self.get_607_itbis_retenido_and_date(invoice)
             formas_pagos = self.get_format_pago_ventas(invoice, commun_data)

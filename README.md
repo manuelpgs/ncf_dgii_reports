@@ -30,6 +30,7 @@ Con esta acción podemos obtener las columnas *7 - FECHA DE RETENCIÓN* y *10 - 
 - En el 607, la columna 10 *ITBIS RETENIDO POR TERCEROS (y la fecha de retención)*, solo está programado para considerar y obtener este monto para negocios con RNC, si es un negocio registrado con su CÉDULA, se le deberá progamar está funcionalidad siguiendo el modelo de negocios con RNC.
 - En el 607, la columna 12 *RETENCIÓN RENTA POR TERCEROS* no está programada para los negocios que aplica como puede ser un negocio que este registrado con su CÉDULA en lugar de un RNC.
 - En el 607, las columnas *14-ISC, 15-Otros Impuestos/Taxas y 16-Monto Propina Legal* no estan programada, para un negocio que las requiera, se le deben programar.
+<!-- - En el 607, la columna *20 - Venta a Crédito* se está colocando como 0 si el invoice está marcado como pagado, pero esto podría ser sobre-escrito si se crea un diario que tenga la forma de pago *A Crédito* -->
 
 
 ### Créditos:  Basado en el trabajo de Eneldo Serrata para Marcos Organizador de Negocios SRL. (https://marcos.do/) 
