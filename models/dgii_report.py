@@ -1251,28 +1251,43 @@ class DgiiReport(models.Model):
 
         lines = []
 
-        CANTIDAD_REGISTRO = str(len(self.sale_report)).zfill(12)
-        TOTAL_MONTO_FACTURADO_FACTURAS = sum([rec.MONTO_FACTURADO for rec in self.sale_report if rec.NUMERO_COMPROBANTE_MODIFICADO == False])
-        TOTAL_MONTO_FACTURADO_NC = sum([rec.MONTO_FACTURADO for rec in self.sale_report if rec.NUMERO_COMPROBANTE_MODIFICADO != False])
-        TOTAL_MONTO_FACTURADO = "{:.2f}".format(TOTAL_MONTO_FACTURADO_FACTURAS - TOTAL_MONTO_FACTURADO_NC).zfill(16)
+        CANTIDAD_REGISTRO = len(self.sale_report)
 
         header = "607"
-        header += company_fiscal_identificacion.rjust(11)
+        header += "|"
+        header += company_fiscal_identificacion + "|"
         header += str(year)
         header += str(month).zfill(2)
-        header += CANTIDAD_REGISTRO
-        header += TOTAL_MONTO_FACTURADO
+        header += "|"
+        header += str(CANTIDAD_REGISTRO)
+
         lines.append(header)
 
         for sale_line in self.sale_report:
             ln = ""
-            ln += sale_line.RNC_CEDULA and sale_line.RNC_CEDULA.rjust(11) or "".rjust(11)
-            ln += sale_line.TIPO_IDENTIFICACION
-            ln += sale_line.NUMERO_COMPROBANTE_FISCAL.rjust(19)
-            ln += sale_line.NUMERO_COMPROBANTE_MODIFICADO or "".rjust(19)
-            ln += sale_line.FECHA_COMPROBANTE.replace("-", "")
-            ln += "{:.2f}".format(sale_line.ITBIS_FACTURADO).zfill(12)
-            ln += "{:.2f}".format(sale_line.MONTO_FACTURADO).zfill(12)
+            ln += sale_line.RNC_CEDULA + "|"
+            ln += sale_line.TIPO_IDENTIFICACION + "|"
+            ln += sale_line.NUMERO_COMPROBANTE_FISCAL + "|"
+            ln += sale_line.NUMERO_COMPROBANTE_MODIFICADO + "|" if sale_line.NUMERO_COMPROBANTE_MODIFICADO else "|"
+            ln += str(sale_line.TIPO_DE_INGRESO) + "|"
+            ln += sale_line.FECHA_COMPROBANTE.replace("-", "") + "|"
+            ln += sale_line.FECHA_RETENCION.replace("-", "") + "|" if sale_line.FECHA_RETENCION else "|"
+            ln += str(abs(sale_line.MONTO_FACTURADO)) + "|"
+            ln += str(abs(sale_line.ITBIS_FACTURADO)) + "|" if sale_line.ITBIS_FACTURADO else "|"
+            ln += str(abs(sale_line.ITBIS_RETENIDO_POR_TERCEROS)) + "|" if sale_line.ITBIS_RETENIDO_POR_TERCEROS else "|"
+            ln += str(abs(sale_line.ITBIS_PERCIBIDO)) + "|" if sale_line.ITBIS_PERCIBIDO else "|"
+            ln += str(abs(sale_line.RETENCION_RENTA_POR_TERCEROS)) + "|" if sale_line.RETENCION_RENTA_POR_TERCEROS else "|"
+            ln += str(abs(sale_line.ISR_PERCIBIDO)) + "|" if sale_line.ISR_PERCIBIDO else "|"
+            ln += str(abs(sale_line.IMPUESTO_ISC)) + "|" if sale_line.IMPUESTO_ISC else "|"
+            ln += str(abs(sale_line.IMPUESTOS_OTROS)) + "|" if sale_line.IMPUESTOS_OTROS else "|"
+            ln += str(abs(sale_line.MONTO_PROPINA_LEGAL)) + "|" if sale_line.MONTO_PROPINA_LEGAL else "|"
+            ln += str(abs(sale_line.MONTOS_PAGADOS_EFECTIVO)) + "|" if sale_line.MONTOS_PAGADOS_EFECTIVO else "|"
+            ln += str(abs(sale_line.MONTOS_PAGADOS_BANCO)) + "|" if sale_line.MONTOS_PAGADOS_BANCO else "|"
+            ln += str(abs(sale_line.MONTOS_PAGADOS_TARJETAS)) + "|" if sale_line.MONTOS_PAGADOS_TARJETAS else "|"
+            ln += str(abs(sale_line.MONTOS_A_CREDITO)) + "|" if sale_line.MONTOS_A_CREDITO else "|"
+            ln += str(abs(sale_line.MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS)) + "|" if sale_line.MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS else "|"
+            ln += str(abs(sale_line.MONTOS_EN_PERMUTA)) + "|" if sale_line.MONTOS_EN_PERMUTA else "|"
+            ln += str(abs(sale_line.MONTOS_EN_OTRAS_FORMAS_VENTAS)) if sale_line.MONTOS_EN_OTRAS_FORMAS_VENTAS else ""
             lines.append(ln)
 
         for line in lines:
@@ -1281,7 +1296,7 @@ class DgiiReport(models.Model):
         sale_file.close()
         sale_file = open(sale_path, 'rb')
         sale_binary = base64.b64encode(sale_file.read())
-        report_name = 'DGII_607_{}_{}{}.TXT'.format(company_fiscal_identificacion, str(year),str(month).zfill(2))
+        report_name = 'DGII_F_607_{}_{}{}.TXT'.format(company_fiscal_identificacion, str(year),str(month).zfill(2))
         self.write({'sale_binary': sale_binary, 'sale_filename': report_name})
 
         ''' ************************ 606 TXT REPORT ******************************** '''
