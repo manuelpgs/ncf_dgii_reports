@@ -463,22 +463,24 @@ class DgiiReport(models.Model):
         return IMPUESTO_ISC, IMPUESTOS_OTROS, MONTO_PROPINA_LEGAL
 
 
-    def get_format_pago_compras(self, invoice_id):
+    def get_format_pago_compras(self, invoice):
 
         FORMA_PAGO = '04' # 04 = COMPRA A CREDITO
 
-        if invoice_id.state == "paid":
+        if invoice.state == "paid":
 
-            self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)
+            self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice.id)
             payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
 
-            if invoice_id.number.startswith('B04'): # This is a Credit Note
+            if invoice.number.startswith('B04') or invoice.number[9:11] == '04': # This is a Credit Note
                 '''
                 #TODO validate with an accountant if Credit Note require Payment Method.
                 By now, one accoutant (Henry) said that he think could be the same payment method as original invoice or could be leave empty. (Aug 14th, 2018).
                 But, I think it need be just Credit Note 'cause you don't use Cash or Credit Card to pay a NC (Manuel González)
+                Update 1: in Aug 28, a DGII's employee (one those that work in "fiscalización") says that it need to be the original invoice payment method,
+                but that employee seems not be very sure about it.  But due two "confirmations", I am going to set the original invoice payment method
                 '''
-                FORMA_PAGO = '06' # NOTA DE CREDITO
+                FORMA_PAGO = self.get_format_pago_compras(invoice.refund_invoice_id)
 
             elif not payment_rel: # could be a NOTA DE CREDITO, they don't seems store payment_id
                 '''
@@ -489,7 +491,7 @@ class DgiiReport(models.Model):
                 le pide al proveedor que le reembolse parte de esa factura por algún error.
                 '''
 
-                refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)])
+                refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice.id)])
                 if refund_invoice_id:
                     FORMA_PAGO = '06' # 06 = NOTA DE CREDITO
 
