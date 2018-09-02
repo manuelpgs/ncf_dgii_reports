@@ -463,7 +463,7 @@ class DgiiReport(models.Model):
         return IMPUESTO_ISC, IMPUESTOS_OTROS, MONTO_PROPINA_LEGAL
 
 
-    def get_format_pago_compras(self, invoice):
+    def get_forma_pago_compras(self, invoice):
 
         FORMA_PAGO = '04' # 04 = COMPRA A CREDITO
 
@@ -480,7 +480,7 @@ class DgiiReport(models.Model):
                 Update 1: in Aug 28, a DGII's employee (one those that work in "fiscalización") says that it need to be the original invoice payment method,
                 but that employee seems not be very sure about it.  But due two "confirmations", I am going to set the original invoice payment method
                 '''
-                FORMA_PAGO = self.get_format_pago_compras(invoice.refund_invoice_id)
+                FORMA_PAGO = self.get_forma_pago_compras(invoice.refund_invoice_id)
 
             elif not payment_rel: # could be a NOTA DE CREDITO, they don't seems store payment_id
                 '''
@@ -489,11 +489,19 @@ class DgiiReport(models.Model):
                 que NO es una nota de crédito.   Quizás la opción de pago 06 = NOTA DE CREDITO del 606 es para ponerle a las NC como tal.
                 Update 1:  en Aug 14th, 2018 el contable Henry dice que si es posible esto dado que la factura puede ser a crédito de 30 o 90 días y luego el cliente
                 le pide al proveedor que le reembolse parte de esa factura por algún error.
+
+                Notar: 
+                - Si este elif es alcanzado es porque la factura fue pagada full con NC.
+                - Al ser pagada con NC y estar en este punto (sin pago registrado) signfica que el bien/servicio recibido fue a crédito
+                - Si la NC es parcial (no es el valor total de está factura), se alcanzará el else más abajo y la forma de pago podría ser una de las opciones de las validaciones hechas allí.
+                Att: Manuel González <manuel@softnet.do>
                 '''
 
-                refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice.id)])
-                if refund_invoice_id:
-                    FORMA_PAGO = '06' # 06 = NOTA DE CREDITO
+                # refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice.id)])
+                # if refund_invoice_id:
+                #     FORMA_PAGO = '06' # 06 = NOTA DE CREDITO
+
+                FORMA_PAGO = '04' # 04 = COMPRA A CREDITO
 
             elif len(payment_rel) > 1:
 
@@ -679,31 +687,37 @@ class DgiiReport(models.Model):
     '''
         Call this method only when the invoice is paid.
     '''
-    def get_format_pago_ventas(self, invoice, commun_data):
+    def get_forma_pago_ventas(self, invoice, commun_data):
 
         self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice.id)
         payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
 
-        if invoice.number.startswith('B04'): # This is a Credit Note
+        if invoice.number.startswith('B04') or or invoice.number[9:11] == '04': # This is a Credit Note
             '''
-            #TODO validate with an accountant if Credit Note require Payment Method.
-            By now, one accoutant (Henry) said that he think could be the same payment method as original invoice or could be leave empty. (Aug 14th, 2018).
-            But, I think it need be just Credit Note 'cause you don't use Cash or Credit Card to pay a NC (Manuel González)
+            #TODO validate with an accountant if Credit Note require "Payment Method".
+            By now, one accoutant (Henry) said that by logic, NC should have the same payment method as original invoice,
+            but he also says that in a 607 report, he sent a NC with "Payment Method" as empty and all was OK.
+            
+            So, by now just let it empty, is more "logic" to me. (Manuel González <manuel@softnet.do>)
             '''
-            FORMA_PAGO = '06' # NOTA DE CREDITO
+            commun_data['MONTOS_A_CREDITO'] = 0 # set 0 'cause by default the invoice comes with this value
 
-        elif not payment_rel: # could be a NOTA DE CREDITO, they don't seems store payment_id
+        elif not payment_rel: # could be full paid with a "NOTA DE CREDITO", they don't seems store payment_id
             '''
             #TODO este else quizás no debería ser alcanzado dado que una factura no se puede pagar con una NC, en teoría...
-            pues no te darán una NC de una factura que no está pagada y por lo consiguiente si una factura fue pagada debe tener su forma de pago
-            que NO es una nota de crédito.   Quizás la opción de pago 06 = NOTA DE CREDITO del 606 es para ponerle a las NC como tal.
+            pues no deberíamos dar una NC de una factura que no está pagada y por lo consiguiente si una factura fue pagada debe tener su forma de pago
+            que NO es una nota de crédito.   
             Update 1:  en Aug 14th, 2018 el contable Henry dice que si es posible esto dado que la factura puede ser a crédito de 30 o 90 días y luego el cliente
-            le pide al proveedor que le reembolse parte de esa factura por algún error.
+            le pide al proveedor que le reembolse parte de esa factura por algún error.  Comentario de Manuel Gonzalez <manuel@softnet.do>: Aunque de todas formas 
+            si este caso se da, solo se alcanzaría este elif cuando el pago con la nota de crédito sea por el monto total de la factura, si el la NC fue parcial
+            significa que alguna otra forma de pago fue usada y entonces se iría al else de abajo.
+
+            Entonces, la única "forma de pago" factible aquí sería "A Crédito" pues la factura nunca fue pagada realmente.  Aunque si este elif es alcanzado significa
+            que la NC emitida para esta factura fue hecha en el mismo período que está factura; si la NC se emite en un período posterior, pues está factura no irá, solo
+            aparecera como "NÚMERO DE COMPROBANTE MODIFICADO".  Att: Manuel González <manuel@softnet.do>
             '''
 
-            refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice.id)])
-            if refund_invoice_id:
-                FORMA_PAGO = '06' # 06 = NOTA DE CREDITO
+            commun_data['MONTOS_A_CREDITO'] = 0 # set 0 'cause by default the invoice comes with this value
 
         else:
 
@@ -740,7 +754,7 @@ class DgiiReport(models.Model):
             commun_data['MONTOS_A_CREDITO'] = 0 # if an invoice is paid, it can't have any amount as a credit. #TODO or yes?
 
             FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS = self.get_607_itbis_retenido_and_date(invoice)
-            formas_pagos = self.get_format_pago_ventas(invoice, commun_data)
+            formas_pagos = self.get_forma_pago_ventas(invoice, commun_data)
 
             commun_data = dict(commun_data, **formas_pagos) # with this, we merge two dict.  All keys's values are overritten from A (commun_data) to what is set on B (formas_pagos)            
 
@@ -888,7 +902,7 @@ class DgiiReport(models.Model):
                 "IMPUESTO_ISC": IMPUESTO_ISC, # 606, 607
                 "IMPUESTOS_OTROS": IMPUESTOS_OTROS, # 606, 607
                 "MONTO_PROPINA_LEGAL": MONTO_PROPINA_LEGAL, # 606, 607
-                "FORMA_PAGO": self.get_format_pago_compras(invoice_id) if invoice_id.type in ("in_invoice", "in_refund") else False, # 606
+                "FORMA_PAGO": self.get_forma_pago_compras(invoice_id) if invoice_id.type in ("in_invoice", "in_refund") else False, # 606
                 "TIPO_DE_INGRESO": None, # 607
                 "FECHA_RETENCION": None, # 607
                 "ITBIS_RETENIDO_POR_TERCEROS": 0, # 607
