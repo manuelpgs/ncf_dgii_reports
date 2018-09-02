@@ -687,12 +687,12 @@ class DgiiReport(models.Model):
     '''
         Call this method only when the invoice is paid.
     '''
-    def get_forma_pago_ventas(self, invoice, commun_data):
+    def get_forma_pago_ventas(self, invoice, commun_data):        
 
         self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice.id)
         payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
 
-        if invoice.number.startswith('B04') or or invoice.number[9:11] == '04': # This is a Credit Note
+        if invoice.number.startswith('B04') or invoice.number[9:11] == '04': # This is a Credit Note
             '''
             #TODO validate with an accountant if Credit Note require "Payment Method".
             By now, one accoutant (Henry) said that by logic, NC should have the same payment method as original invoice,
@@ -740,6 +740,15 @@ class DgiiReport(models.Model):
                 else:
                     commun_data['MONTOS_EN_OTRAS_FORMAS_VENTAS'] += payment.amount # like Bitcoin and others
 
+            '''
+                This is not going to 607 report or any model,
+                just use to operations
+            '''
+            commun_data['GRAN_TOTAL_PAGADO'] = commun_data['MONTOS_PAGADOS_EFECTIVO'] \
+                + commun_data['MONTOS_PAGADOS_BANCO'] + commun_data['MONTOS_PAGADOS_TARJETAS'] \
+                + commun_data['MONTOS_A_CREDITO'] + commun_data['MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS'] \
+                + commun_data['MONTOS_EN_PERMUTA'] + commun_data['MONTOS_EN_OTRAS_FORMAS_VENTAS']
+
         
         return commun_data
 
@@ -749,9 +758,7 @@ class DgiiReport(models.Model):
         commun_data['TIPO_DE_INGRESO'] = invoice.income_type
         commun_data['MONTOS_A_CREDITO'] = invoice.amount_total_signed # by default it is credit.  #TODO, there are too: amount_total_company_signed and amount_total. What are the differences?
 
-        if invoice.state == "paid":
-
-            commun_data['MONTOS_A_CREDITO'] = 0 # if an invoice is paid, it can't have any amount as a credit. #TODO or yes?
+        if invoice.state == "paid":            
 
             FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS = self.get_607_itbis_retenido_and_date(invoice)
             formas_pagos = self.get_forma_pago_ventas(invoice, commun_data)
@@ -760,6 +767,21 @@ class DgiiReport(models.Model):
 
             commun_data['FECHA_RETENCION'] = FECHA_RETENCION
             commun_data['ITBIS_RETENIDO_POR_TERCEROS'] = ITBIS_RETENIDO_POR_TERCEROS
+            commun_data['MONTOS_A_CREDITO'] = 0 # if the invoice is paid, start with 0, if there is remaining amount, then below it is calculated and assigned.
+
+            gran_total_paid_plus_retentions = commun_data['GRAN_TOTAL_PAGADO'] + commun_data['ITBIS_RETENIDO_POR_TERCEROS'] if commun_data['ITBIS_RETENIDO_POR_TERCEROS'] else commun_data['GRAN_TOTAL_PAGADO']
+
+            if invoice.amount_total_signed > gran_total_paid_plus_retentions:
+                '''
+                    The accountant Henry says that an invoice could be partially paid with any valid 
+                    Payment Method and the remaining amount could be as "A Crédito"
+
+                    #TODO here also need be calculate the column 12 607 report "Retención Renta por Terceros"
+                    that by now we set that column as 0, but if this report is going to be used by someone with
+                    CÉDULA instead of RNC or if its business is one of those that have "Retención Renta por Terceros",
+                    so that is something to be programmed.
+                '''
+                commun_data['MONTOS_A_CREDITO'] = invoice.amount_total_signed - gran_total_paid_plus_retentions
 
         return commun_data
 
