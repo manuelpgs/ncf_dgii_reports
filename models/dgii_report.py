@@ -830,9 +830,11 @@ class DgiiReport(models.Model):
             ['|', ('ncf_control', '=', True), ('ncf_remote_validation', '=', True)])
 
         # searching invoices to this period
-        invoice_ids = self.env["account.invoice"].search(
-            [('date_invoice', '>=', start_date), ('date_invoice', '<=', end_date),
-             ('journal_id', 'in', journal_ids.ids)])
+        invoice_ids = self.env["account.invoice"].search([
+            ('date_invoice', '>=', start_date), 
+            ('date_invoice', '<=', end_date),
+            ('journal_id', 'in', journal_ids.ids),
+        ], order='date_invoice, number asc')
 
         error_list = self.get_invoice_in_draft_error(invoice_ids.filtered(lambda x: x.state == "draft"))
 
@@ -1624,7 +1626,9 @@ class DgiiReport(models.Model):
 
 
 class DgiiReportPurchaseLine(models.Model):
+    
     _name = "dgii.report.purchase.line"
+    _order = "FECHA_COMPROBANTE, NUMERO_COMPROBANTE_FISCAL ASC"
 
     def get_str_forma_pago(self, FORMA_PAGO):
 
@@ -1691,7 +1695,9 @@ class DgiiReportPurchaseLine(models.Model):
 
 
 class DgiiReportSaleLine(models.Model):
+
     _name = "dgii.report.sale.line"
+    _order = "FECHA_COMPROBANTE, NUMERO_COMPROBANTE_FISCAL ASC"
 
     def _get_str(self):
 
