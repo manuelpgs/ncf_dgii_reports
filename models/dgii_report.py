@@ -257,7 +257,7 @@ class DgiiReport(models.Model):
         the services, what matter is the document/identification of the provider,
         if this is of kind of "cedula", so it is informal.
     '''
-    def get_late_informal_payed_invoice(self, start_date, end_date):
+    def get_late_informal_payed_invoice(self, start_date, end_date): #back01
 
         invoice_ids = self.env["account.invoice"] # this is like define an empty array|object
 
@@ -880,6 +880,7 @@ class DgiiReport(models.Model):
                 NUMERO_COMPROBANTE_MODIFICADO, AFFECTED_NVOICE_ID = self.get_numero_de_comprobante_modificado(invoice_id)
 
             FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = TIPO_RETENCION_ISR = False
+            FORMA_PAGO = self.get_forma_pago_compras(invoice_id) if invoice_id.type in ("in_invoice", "in_refund") else False
 
             if invoice_id.state == "paid":
                 FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR = self.get_payment_date_and_retention_data(invoice_id)
@@ -888,11 +889,13 @@ class DgiiReport(models.Model):
                 periodMonth = int(month)
 
                 '''
-                    With the validation below we are looking don't show payment date or retentions info in a period
-                    that the invoice was not paid yet.
+                    With the validation below we are looking don't show some payment 
+                    informations when the invoice was paid in a period that the invoice 
+                    was not paid yet (normally, months later...)
                 '''
                 if invoiceMonth != paidMonth and invoiceMonth == periodMonth:
-                    FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = False
+                    FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = TIPO_RETENCION_ISR = False 
+                    FORMA_PAGO = '04' # COMPRA A CRÉDITO                   
 
             ''' This is one line in 606 or 607 report '''
             commun_data = {
@@ -926,7 +929,7 @@ class DgiiReport(models.Model):
                 "IMPUESTO_ISC": IMPUESTO_ISC, # 606, 607
                 "IMPUESTOS_OTROS": IMPUESTOS_OTROS, # 606, 607
                 "MONTO_PROPINA_LEGAL": MONTO_PROPINA_LEGAL, # 606, 607
-                "FORMA_PAGO": self.get_forma_pago_compras(invoice_id) if invoice_id.type in ("in_invoice", "in_refund") else False, # 606
+                "FORMA_PAGO": FORMA_PAGO, # 606
                 "TIPO_DE_INGRESO": None, # 607
                 "FECHA_RETENCION": None, # 607
                 "ITBIS_RETENIDO_POR_TERCEROS": 0, # 607
@@ -940,7 +943,7 @@ class DgiiReport(models.Model):
                 "MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS": 0, # 607
                 "MONTOS_EN_PERMUTA": 0, # 607
                 "MONTOS_EN_OTRAS_FORMAS_VENTAS": 0 # 607
-            }
+            }        
 
             if invoice_id.type in ("out_invoice", "out_refund"):
                 report_607_data = self.get_607_report_data(invoice_id, commun_data)
