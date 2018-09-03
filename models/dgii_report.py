@@ -249,15 +249,17 @@ class DgiiReport(models.Model):
 
 
     ''''
-        With this method they want get all invoices paid in a period of time
-        and use them in the report of the current month (period: start and end date given).
-        But, acording with some accountants, this should be only valid for invoices
+        With this method, we want get all invoices paid in a period of time (normally months later)
+        and use them in the report of the current month (period: start date and end date given), but
+        only if those invoices have retentions.
+
+        Note for 606 report: acording with some accountants, this should be only valid for invoices
         with retention of ITBIS and ISR and of kind "Informal", which means that
-        don't matter if the NCF is issued by the provider or by the company requiring
-        the services, what matter is the document/identification of the provider,
+        don't matter if the NCF is issued by a person or by a business,
+        what matter is the document/identification of the provider,
         if this is of kind of "cedula", so it is informal.
     '''
-    def get_late_informal_payed_invoice(self, start_date, end_date): #back01
+    def get_late_paid_invoice_with_retentions(self, start_date, end_date): #back01
 
         invoices = self.env["account.invoice"] # this is like define an empty array|object
 
@@ -269,22 +271,29 @@ class DgiiReport(models.Model):
 
         for payment in payments:
 
-            RNC_CEDULA, TIPO_IDENTIFICACION = self.get_identification_info(payment.partner_id.vat)
+            # RNC_CEDULA, TIPO_IDENTIFICACION = self.get_identification_info(payment.partner_id.vat)
 
-            if TIPO_IDENTIFICACION == "2": # just informal with or without ncf given.
-                '''
-                    Here we want the latest payment, this means that this was the date
-                    when the invoice was paid fully.
-                '''
-                self.env.cr.execute("select * from account_invoice_payment_rel where payment_id = %s order by payment_id desc limit 1" % payment.id)
-                payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()
-                # last_payment = self.env["account.payment"].browse(payment_rel['payment_id'])
-                invoice = self.env["account.invoice"].browse(payment_rel['invoice_id'])
+            # if TIPO_IDENTIFICACION == "2": # just informal with or without ncf given.
+            '''
+                Here we want the latest payment, this means that this was the date
+                when the invoice was paid fully.
+            '''
+            self.env.cr.execute("select * from account_invoice_payment_rel where payment_id = %s order by payment_id desc limit 1" % payment.id)
+            payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()
+            # last_payment = self.env["account.payment"].browse(payment_rel['payment_id'])
+            invoice = self.env["account.invoice"].browse(payment_rel['invoice_id'])
 
+            # RETENCION_RENTA =  ITBIS_RETENIDO = False
+
+            if invoice.type == 'in_invoice': # 606
                 FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR = self.get_payment_date_and_retention_data(invoice)
 
-                if ITBIS_RETENIDO or RETENCION_RENTA:
-                    invoices |= invoice # this is like array_push(), just making appends
+            if invoice.type == 'out_invoice': # 607
+                FECHA_PAGO, ITBIS_RETENIDO = self.get_607_itbis_retenido_and_date(invoice)
+                RETENCION_RENTA = False #TODO need to be programmed for business and persons using "CÉDULA" as RNC, 'cause they can get ISR retentions
+
+            if ITBIS_RETENIDO or RETENCION_RENTA:
+                invoices |= invoice # this is like array_push(), just making appends
 
         return invoices
 
@@ -361,29 +370,30 @@ class DgiiReport(models.Model):
 
 
     '''
-    *** This method is only called when the Invoice is paid
+        This method is only called when the Invoice is paid.
+        This method is used for 606 report.  There is other
+        method similar to this but for 607 report, its name is:
+        get_607_itbis_retenido_and_date().  We decide to keep these
+        two method separate for better understand and convenience.
     '''
-    def get_payment_date_and_retention_data(self, invoice_id):
+    def get_payment_date_and_retention_data(self, invoice):
 
         FECHA_PAGO = False
         ITBIS_RETENIDO = 0
         RETENCION_RENTA = 0
         TIPO_RETENCION_ISR = False
 
-        # if invoice_id.id == False : #TODO for some reason, invoice_id has not any properties some times...
-        #     return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR
-
-        # payment_rel = self.env["account.invoice.payment.rel"].search(['invoice_id', '=', invoice_id.id]) # This return an error:  KeyError: 'account.invoice.payment.rel'
-        self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)
+        # payment_rel = self.env["account.invoice.payment.rel"].search(['invoice', '=', invoice.id]) # This return an error:  KeyError: 'account.invoice.payment.rel'
+        self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice.id)
         payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()
 
-        if invoice_id.number.startswith('B04'): # This is a Credit Note
+        if invoice.number.startswith('B04'): # This is a Credit Note
             '''
             #TODO validate with an accountant if Credit Note require payment date.
             # If true so this is the same date when the NC was made.
             By now, one accoutant (Henry) said that he think could be the same date as NC or could be leave empty. (Aug 14th, 2018)
             '''
-            FECHA_PAGO = invoice_id.date_invoice
+            FECHA_PAGO = invoice.date_invoice
 
         elif payment_rel:
 
@@ -399,28 +409,21 @@ class DgiiReport(models.Model):
             le pide al proveedor que le reembolse parte de esa factura por algún error.
             '''
 
-            refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice_id.id)], limit=1, order='refund_invoice_id desc') # the last one is the real payment day
+            refund_invoice_id = self.env["account.invoice"].search([('refund_invoice_id', '=', invoice.id)], limit=1, order='refund_invoice_id desc') # the last one is the real payment day
 
             if refund_invoice_id: # this is the Credit Notes
                 FECHA_PAGO = refund_invoice_id.date_invoice
 
-        move_id = self.env["account.move.line"].search([("move_id", "=", invoice_id.move_id.id), ('full_reconcile_id', '!=', False)]) # just one is full_reconcile_id
+        move_id = self.env["account.move.line"].search([("move_id", "=", invoice.move_id.id), ('full_reconcile_id', '!=', False)]) # just one is full_reconcile_id
 
-        if invoice_id.journal_id.purchase_type in ("informal", "normal"):
+        if invoice.journal_id.purchase_type in ("informal", "normal"):
 
             if move_id:
 
-                '''
-                I commented the below query because when I run in my DB:
-                select * from account_move_line where payment_id > 0 and invoice_id > 0 order by payment_id desc;
-                I just get four invoice and I have other Invoice with ITBIS and ISR retentions but it doesn't appears in this search....
-                '''
-                # account_move_lines = self.env["account.move.line"].search(
-                #     [('invoice_id', '=', invoice_id.id), ('payment_id', '!=', False),
-                #      ('tax_line_id', '!=', False)])
-
-                account_move_lines = self.env["account.move.line"].search(
-                    [('move_id', '=', invoice_id.move_id.id),('tax_line_id', '!=', False)]) # I removed the filter ('payment_id', '!=', False) because in one of my case the move lines don't have payment_id, why?, I don't have idea....
+                account_move_lines = self.env["account.move.line"].search([
+                    ('move_id', '=', invoice.move_id.id),
+                    ('tax_line_id', '!=', False)
+                ]) # I removed the filter ('payment_id', '!=', False) because in one of my case the move lines don't have payment_id, why?, I don't have idea....
 
                 if account_move_lines:
                     for line in account_move_lines:
@@ -772,6 +775,21 @@ class DgiiReport(models.Model):
             commun_data['ITBIS_RETENIDO_POR_TERCEROS'] = ITBIS_RETENIDO_POR_TERCEROS
             commun_data['MONTOS_A_CREDITO'] = 0 # if the invoice is paid, start with 0, if there is remaining amount, then below it is calculated and assigned.
 
+            '''
+                Avoid set "ITBIS RETENIDO POR TERCEROS" and any payment form instead
+                "A CRÉDITO" for invoice paid months laters (and other stuff)
+            '''
+            month, year = self.name.split("/")
+            invoiceMonth = int(invoice.date_invoice[5:7])
+            retentionMonth = int(FECHA_RETENCION[5:7]) if FECHA_RETENCION else False
+            periodMonth = int(month)
+
+            if invoiceMonth != retentionMonth and invoiceMonth == periodMonth:
+                commun_data['FECHA_RETENCION'] = None
+                commun_data['ITBIS_RETENIDO_POR_TERCEROS'] = 0
+                commun_data['MONTOS_A_CREDITO'] = invoice.amount_total_signed
+                commun_data['MONTOS_PAGADOS_EFECTIVO'] = commun_data['MONTOS_PAGADOS_BANCO'] = commun_data['MONTOS_PAGADOS_TARJETAS'] = commun_data['MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS'] = commun_data['MONTOS_EN_PERMUTA'] = commun_data['MONTOS_EN_OTRAS_FORMAS_VENTAS'] = 0
+
             gran_total_paid_plus_retentions = commun_data['GRAN_TOTAL_PAGADO'] + commun_data['ITBIS_RETENIDO_POR_TERCEROS'] if commun_data['ITBIS_RETENIDO_POR_TERCEROS'] else commun_data['GRAN_TOTAL_PAGADO']
 
             if invoice.amount_total_signed > gran_total_paid_plus_retentions:
@@ -847,7 +865,7 @@ class DgiiReport(models.Model):
 
         invoice_ids = invoice_ids.filtered(lambda x: x.state in ('open', 'paid'))
 
-        invoice_ids |= self.get_late_informal_payed_invoice(start_date, end_date)
+        invoice_ids |= self.get_late_paid_invoice_with_retentions(start_date, end_date)
 
         count = len(invoice_ids)
 
