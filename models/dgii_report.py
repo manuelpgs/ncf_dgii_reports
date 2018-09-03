@@ -289,9 +289,7 @@ class DgiiReport(models.Model):
         if TIPO_IDENTIFICACION == "3":
             RNC_CEDULA = ""
 
-        return RNC_CEDULA, TIPO_IDENTIFICACION
-
-    # def validate_fiscal_information(self, vat, ncf, invoice_type, origin_invoice_ids): # AttributeError: 'account.invoice' object has no attribute 'origin_invoice_ids', even in the old marcos addons
+        return RNC_CEDULA, TIPO_IDENTIFICACION    
 
     def validate_fiscal_information(self, vat, invoice):
 
@@ -308,12 +306,6 @@ class DgiiReport(models.Model):
 
         if not ncf.is_valid(invoice.number) or not ncf.check_dgii(vat, invoice.number):
             error_list.append(u"El NCF no es válido.  RNC: %s y tipo de Factura: %s" % (vat, invoice.type))
-
-        # if len(origin_invoice_ids) > 1 and invoice_type in ("out_refund", "in_refund"):
-        #     error_list.append(u"NC/ND Afectando varias facturas")
-
-        # if not origin_invoice_ids and invoice_type in ("out_refund", "in_refund"):
-        #     error_list.append(u"NC/ND sin comprobante que afecta")
 
         if  not invoice.refund_invoice_id and invoice.type in ("out_refund", "in_refund"):
             error_list.append(u"NC/ND sin comprobante que afecta")
@@ -344,8 +336,7 @@ class DgiiReport(models.Model):
 
         NUMERO_COMPROBANTE_MODIFICADO = False
         AFFECTED_NVOICE_ID = False
-
-        # origin_invoice_id = invoice_id.origin_invoice_ids.filtered(lambda x: x.state in ("open", "paid")) # old way in marcos way... AttributeError: 'account.invoice' object has no attribute 'origin_invoice_ids'
+        
         origin_invoice_id = invoice_id.refund_invoice_id.filtered(lambda x: x.state in ("open", "paid"))
 
         if not origin_invoice_id:
@@ -855,9 +846,6 @@ class DgiiReport(models.Model):
         for invoice_id in invoice_ids:
 
             RNC_CEDULA, TIPO_IDENTIFICACION = self.get_identification_info(invoice_id.partner_id.vat)
-
-            # error_msg = self.validate_fiscal_information(RNC_CEDULA, invoice_id.number, invoice_id.type,
-                                                        #  invoice_id.origin_invoice_ids) # AttributeError: 'account.invoice' object has no attribute 'origin_invoice_ids'.  Even in the old marcos addons
 
             error_msg = self.validate_fiscal_information(RNC_CEDULA, invoice_id)
 
