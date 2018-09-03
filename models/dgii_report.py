@@ -259,22 +259,34 @@ class DgiiReport(models.Model):
     '''
     def get_late_informal_payed_invoice(self, start_date, end_date): #back01
 
-        invoice_ids = self.env["account.invoice"] # this is like define an empty array|object
+        invoices = self.env["account.invoice"] # this is like define an empty array|object
 
-        paid_invoice_ids = self.env["account.payment"].search(
-            [('payment_date', '>=', start_date), ('payment_date', '<=', end_date), ('invoice_ids', '!=', False)])
+        payments = self.env["account.payment"].search([
+            ('payment_date', '>=', start_date),
+            ('payment_date', '<=', end_date),
+            ('invoice_ids', '!=', False) #TODO validate if this "where" is necessary.
+        ])
 
-        for paid_invoice_id in paid_invoice_ids:
-            RNC_CEDULA, TIPO_IDENTIFICACION = self.get_identification_info(paid_invoice_id.partner_id.vat)
+        for payment in payments:
+
+            RNC_CEDULA, TIPO_IDENTIFICACION = self.get_identification_info(payment.partner_id.vat)
+
             if TIPO_IDENTIFICACION == "2": # just informal with or without ncf given.
-                account_move_lines = self.env["account.move.line"].search([('payment_id', '=', paid_invoice_id.id)])
-                if(account_move_lines):
-                    invoice = account_move_lines[0].invoice_id
-                    FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR = self.get_payment_date_and_retention_data(invoice)
-                    if ITBIS_RETENIDO or RETENCION_RENTA:
-                        invoice_ids |= paid_invoice_id.invoice_ids.filtered(lambda r: r.journal_id.purchase_type in ("informal", "normal")).filtered(lambda r: r.journal_id.type == "purchase") # this is like array_push(), just making appends
+                '''
+                    Here we want the latest payment, this means that this was the date
+                    when the invoice was paid fully.
+                '''
+                self.env.cr.execute("select * from account_invoice_payment_rel where payment_id = %s order by payment_id desc limit 1" % payment.id)
+                payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()
+                # last_payment = self.env["account.payment"].browse(payment_rel['payment_id'])
+                invoice = self.env["account.invoice"].browse(payment_rel['invoice_id'])
 
-        return invoice_ids
+                FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR = self.get_payment_date_and_retention_data(invoice)
+
+                if ITBIS_RETENIDO or RETENCION_RENTA:
+                    invoices |= invoice # this is like array_push(), just making appends
+
+        return invoices
 
     def get_identification_info(self, vat):
         RNC_CEDULA = vat and re.sub("[^0-9]", "", vat.strip()) or False
@@ -289,7 +301,7 @@ class DgiiReport(models.Model):
         if TIPO_IDENTIFICACION == "3":
             RNC_CEDULA = ""
 
-        return RNC_CEDULA, TIPO_IDENTIFICACION    
+        return RNC_CEDULA, TIPO_IDENTIFICACION
 
     def validate_fiscal_information(self, vat, invoice):
 
@@ -336,7 +348,7 @@ class DgiiReport(models.Model):
 
         NUMERO_COMPROBANTE_MODIFICADO = False
         AFFECTED_NVOICE_ID = False
-        
+
         origin_invoice_id = invoice_id.refund_invoice_id.filtered(lambda x: x.state in ("open", "paid"))
 
         if not origin_invoice_id:
@@ -358,8 +370,8 @@ class DgiiReport(models.Model):
         RETENCION_RENTA = 0
         TIPO_RETENCION_ISR = False
 
-        if invoice_id.id == False : #TODO for some reason, invoice_id has not any properties some times...
-            return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR
+        # if invoice_id.id == False : #TODO for some reason, invoice_id has not any properties some times...
+        #     return FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR
 
         # payment_rel = self.env["account.invoice.payment.rel"].search(['invoice_id', '=', invoice_id.id]) # This return an error:  KeyError: 'account.invoice.payment.rel'
         self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice_id.id)
@@ -481,7 +493,7 @@ class DgiiReport(models.Model):
                 Update 1:  en Aug 14th, 2018 el contable Henry dice que si es posible esto dado que la factura puede ser a crédito de 30 o 90 días y luego el cliente
                 le pide al proveedor que le reembolse parte de esa factura por algún error.
 
-                Notar: 
+                Notar:
                 - Si este elif es alcanzado es porque la factura fue pagada full con NC.
                 - Al ser pagada con NC y estar en este punto (sin pago registrado) signfica que el bien/servicio recibido fue a crédito
                 - Si la NC es parcial (no es el valor total de está factura), se alcanzará el else más abajo y la forma de pago podría ser una de las opciones de las validaciones hechas allí.
@@ -678,7 +690,7 @@ class DgiiReport(models.Model):
     '''
         Call this method only when the invoice is paid.
     '''
-    def get_forma_pago_ventas(self, invoice, commun_data):        
+    def get_forma_pago_ventas(self, invoice, commun_data):
 
         self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice.id)
         payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
@@ -688,7 +700,7 @@ class DgiiReport(models.Model):
             #TODO validate with an accountant if Credit Note require "Payment Method".
             By now, one accoutant (Henry) said that by logic, NC should have the same payment method as original invoice,
             but he also says that in a 607 report, he sent a NC with "Payment Method" as empty and all was OK.
-            
+
             So, by now just let it empty, is more "logic" to me. (Manuel González <manuel@softnet.do>)
             '''
             commun_data['MONTOS_A_CREDITO'] = 0 # set 0 'cause by default the invoice comes with this value
@@ -697,9 +709,9 @@ class DgiiReport(models.Model):
             '''
             #TODO este else quizás no debería ser alcanzado dado que una factura no se puede pagar con una NC, en teoría...
             pues no deberíamos dar una NC de una factura que no está pagada y por lo consiguiente si una factura fue pagada debe tener su forma de pago
-            que NO es una nota de crédito.   
+            que NO es una nota de crédito.
             Update 1:  en Aug 14th, 2018 el contable Henry dice que si es posible esto dado que la factura puede ser a crédito de 30 o 90 días y luego el cliente
-            le pide al proveedor que le reembolse parte de esa factura por algún error.  Comentario de Manuel Gonzalez <manuel@softnet.do>: Aunque de todas formas 
+            le pide al proveedor que le reembolse parte de esa factura por algún error.  Comentario de Manuel Gonzalez <manuel@softnet.do>: Aunque de todas formas
             si este caso se da, solo se alcanzaría este elif cuando el pago con la nota de crédito sea por el monto total de la factura, si el la NC fue parcial
             significa que alguna otra forma de pago fue usada y entonces se iría al else de abajo.
 
@@ -713,7 +725,7 @@ class DgiiReport(models.Model):
         else:
 
             for prel in payment_rel:
-                
+
                 payment = self.env["account.payment"].browse(prel['payment_id'])
 
                 if payment.journal_id.payment_form == 'cash':
@@ -740,7 +752,7 @@ class DgiiReport(models.Model):
                 + commun_data['MONTOS_A_CREDITO'] + commun_data['MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS'] \
                 + commun_data['MONTOS_EN_PERMUTA'] + commun_data['MONTOS_EN_OTRAS_FORMAS_VENTAS']
 
-        
+
         return commun_data
 
 
@@ -749,12 +761,12 @@ class DgiiReport(models.Model):
         commun_data['TIPO_DE_INGRESO'] = invoice.income_type
         commun_data['MONTOS_A_CREDITO'] = invoice.amount_total_signed # by default it is credit.  #TODO, there are too: amount_total_company_signed and amount_total. What are the differences?
 
-        if invoice.state == "paid":            
+        if invoice.state == "paid":
 
             FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS = self.get_607_itbis_retenido_and_date(invoice)
             formas_pagos = self.get_forma_pago_ventas(invoice, commun_data)
 
-            commun_data = dict(commun_data, **formas_pagos) # with this, we merge two dict.  All keys's values are overritten from A (commun_data) to what is set on B (formas_pagos)            
+            commun_data = dict(commun_data, **formas_pagos) # with this, we merge two dict.  All keys's values are overritten from A (commun_data) to what is set on B (formas_pagos)
 
             commun_data['FECHA_RETENCION'] = FECHA_RETENCION
             commun_data['ITBIS_RETENIDO_POR_TERCEROS'] = ITBIS_RETENIDO_POR_TERCEROS
@@ -764,7 +776,7 @@ class DgiiReport(models.Model):
 
             if invoice.amount_total_signed > gran_total_paid_plus_retentions:
                 '''
-                    The accountant Henry says that an invoice could be partially paid with any valid 
+                    The accountant Henry says that an invoice could be partially paid with any valid
                     Payment Method and the remaining amount could be as "A Crédito"
 
                     #TODO here also need be calculate the column 12 607 report "Retención Renta por Terceros"
@@ -822,7 +834,7 @@ class DgiiReport(models.Model):
 
         # searching invoices to this period
         invoice_ids = self.env["account.invoice"].search([
-            ('date_invoice', '>=', start_date), 
+            ('date_invoice', '>=', start_date),
             ('date_invoice', '<=', end_date),
             ('journal_id', 'in', journal_ids.ids),
         ], order='date_invoice, number asc')
@@ -877,13 +889,13 @@ class DgiiReport(models.Model):
                 periodMonth = int(month)
 
                 '''
-                    With the validation below we are looking don't show some payment 
-                    informations when the invoice was paid in a period that the invoice 
+                    With the validation below we are looking don't show some payment
+                    informations when the invoice was paid in a period that the invoice
                     was not paid yet (normally, months later...)
                 '''
                 if invoiceMonth != paidMonth and invoiceMonth == periodMonth:
-                    FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = TIPO_RETENCION_ISR = False 
-                    FORMA_PAGO = '04' # COMPRA A CRÉDITO                   
+                    FECHA_PAGO = ITBIS_RETENIDO = RETENCION_RENTA = TIPO_RETENCION_ISR = False
+                    FORMA_PAGO = '04' # COMPRA A CRÉDITO
 
             ''' This is one line in 606 or 607 report '''
             commun_data = {
@@ -931,7 +943,7 @@ class DgiiReport(models.Model):
                 "MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS": 0, # 607
                 "MONTOS_EN_PERMUTA": 0, # 607
                 "MONTOS_EN_OTRAS_FORMAS_VENTAS": 0 # 607
-            }        
+            }
 
             if invoice_id.type in ("out_invoice", "out_refund"):
                 report_607_data = self.get_607_report_data(invoice_id, commun_data)
@@ -1617,7 +1629,7 @@ class DgiiReport(models.Model):
 
 
 class DgiiReportPurchaseLine(models.Model):
-    
+
     _name = "dgii.report.purchase.line"
     _order = "FECHA_COMPROBANTE, NUMERO_COMPROBANTE_FISCAL ASC"
 
