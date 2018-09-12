@@ -698,7 +698,7 @@ class DgiiReport(models.Model):
         self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice.id)
         payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
 
-        if invoice.number.startswith('B04') or invoice.number[9:11] == '04': # This is a Credit Note
+        if  invoice.number.startswith('B04') or (invoice.number[9:11] == '04' and len(invoice.number) > 11): # This is a Credit Note, the len validation if to avoid false positive with invoice like 'B0100000004'
             '''
             #TODO validate with an accountant if Credit Note require "Payment Method".
             By now, one accoutant (Henry) said that by logic, NC should have the same payment method as original invoice,
@@ -748,7 +748,7 @@ class DgiiReport(models.Model):
 
             '''
                 This is not going to 607 report or any model,
-                just use to operations
+                just use to do operations
             '''
             commun_data['GRAN_TOTAL_PAGADO'] = commun_data['MONTOS_PAGADOS_EFECTIVO'] \
                 + commun_data['MONTOS_PAGADOS_BANCO'] + commun_data['MONTOS_PAGADOS_TARJETAS'] \
