@@ -83,6 +83,9 @@ class DgiiReport(models.Model):
         }
 
         for rec in self: #self  = lines on model DgiiReportPurchaseLine
+            
+            report_month, report_year = rec.name.split("/")
+            
             rec.ITBIS_TOTAL = 0
             rec.ITBIS_TOTAL_NC = 0
             rec.ITBIS_TOTAL_PAYMENT = 0
@@ -108,8 +111,10 @@ class DgiiReport(models.Model):
             for purchase in rec.purchase_report:
 
                 TIPO_COMPROBANTE = self.getTipoComprobante(purchase)
+                ncf_year, ncf_month, ncf_day = purchase.FECHA_COMPROBANTE.split("-")
 
                 if TIPO_COMPROBANTE == "04": # 04 = NOTAS DE CRÉDITOS #TODO check to validate NC for Monto Facturado Bienes/Servicios
+                
                     rec.ITBIS_TOTAL_NC += purchase.ITBIS_FACTURADO_TOTAL
                     rec.TOTAL_MONTO_NC += purchase.MONTO_FACTURADO
                     rec.ITBIS_RETENIDO -= purchase.ITBIS_RETENIDO
@@ -124,19 +129,23 @@ class DgiiReport(models.Model):
                     rec.IMPUESTO_ISC -= purchase.IMPUESTO_ISC
                     rec.IMPUESTOS_OTROS -= purchase.IMPUESTOS_OTROS
                     rec.MONTO_PROPINA_LEGAL -= purchase.MONTO_PROPINA_LEGAL
+                
                 elif purchase.NUMERO_COMPROBANTE_MODIFICADO == False:
-                    rec.TOTAL_MONTO_FACTURADO += purchase.MONTO_FACTURADO
-                    rec.MONTO_FACTURADO_SERVICIOS += purchase.MONTO_FACTURADO_SERVICIOS
-                    rec.MONTO_FACTURADO_BIENES += purchase.MONTO_FACTURADO_BIENES
-                    rec.ITBIS_TOTAL += purchase.ITBIS_FACTURADO_TOTAL
-                    rec.ITBIS_FACTURADO_SERVICIOS += purchase.ITBIS_FACTURADO_SERVICIOS
-                    rec.ITBIS_FACTURADO_BIENES += purchase.ITBIS_FACTURADO_BIENES
-                    rec.ITBIS_RETENIDO += purchase.ITBIS_RETENIDO
+                    
+                    if int(report_month) == int(ncf_month) and report_year == ncf_year: # this validation is to avoid add amounts of invoices of previous months
+                        rec.TOTAL_MONTO_FACTURADO += purchase.MONTO_FACTURADO
+                        rec.MONTO_FACTURADO_SERVICIOS += purchase.MONTO_FACTURADO_SERVICIOS
+                        rec.MONTO_FACTURADO_BIENES += purchase.MONTO_FACTURADO_BIENES
+                        rec.ITBIS_TOTAL += purchase.ITBIS_FACTURADO_TOTAL
+                        rec.ITBIS_FACTURADO_SERVICIOS += purchase.ITBIS_FACTURADO_SERVICIOS
+                        rec.ITBIS_FACTURADO_BIENES += purchase.ITBIS_FACTURADO_BIENES
+                        rec.ITBIS_RETENIDO += purchase.ITBIS_RETENIDO
+                        rec.RETENCION_RENTA += purchase.RETENCION_RENTA
+
                     rec.ITBIS_SUJETO_PROPORCIONALIDAD += purchase.ITBIS_SUJETO_PROPORCIONALIDAD
                     rec.ITBIS_LLEVADO_ALCOSTO += purchase.ITBIS_LLEVADO_ALCOSTO
                     rec.ITBIS_POR_ADELANTAR += purchase.ITBIS_POR_ADELANTAR
-                    rec.ITBIS_PERCIBIDO_COMPRAS += purchase.ITBIS_PERCIBIDO_COMPRAS
-                    rec.RETENCION_RENTA += purchase.RETENCION_RENTA
+                    rec.ITBIS_PERCIBIDO_COMPRAS += purchase.ITBIS_PERCIBIDO_COMPRAS                    
                     rec.ISR_PERCIBIDO_COMPRAS += purchase.ISR_PERCIBIDO_COMPRAS
                     rec.IMPUESTO_ISC += purchase.IMPUESTO_ISC
                     rec.IMPUESTOS_OTROS += purchase.IMPUESTOS_OTROS
@@ -187,6 +196,9 @@ class DgiiReport(models.Model):
         }
 
         for rec in self:
+            
+            report_month, report_year = rec.name.split("/")
+
             rec.SALE_ITBIS_TOTAL = 0
             rec.SALE_ITBIS_NC = 0
             rec.SALE_ITBIS_CHARGED = 0
@@ -196,15 +208,20 @@ class DgiiReport(models.Model):
             rec.MONTO_FACTURADO_EXCENTO = 0
 
             for sale in rec.sale_report:
+
+                ncf_year, ncf_month, ncf_day = sale.FECHA_COMPROBANTE.split("-")
+
                 if sale.NUMERO_COMPROBANTE_FISCAL[9:-8] == "04":
                     rec.SALE_ITBIS_NC += sale.ITBIS_FACTURADO
                     rec.SALE_TOTAL_MONTO_NC += sale.MONTO_FACTURADO
                     #TODO falta manejar las notas de credito que afectan facturas de otro periodo.
                     rec.MONTO_FACTURADO_EXCENTO -= sale.MONTO_FACTURADO_EXCENTO
                 else:
-                    rec.SALE_ITBIS_TOTAL += sale.ITBIS_FACTURADO
-                    rec.SALE_TOTAL_MONTO_FACTURADO += sale.MONTO_FACTURADO
-                    rec.MONTO_FACTURADO_EXCENTO += sale.MONTO_FACTURADO_EXCENTO
+
+                    if int(report_month) == int(ncf_month) and report_year == ncf_year: # this validation is to avoid add amounts of invoices of previous months                    
+                        rec.SALE_TOTAL_MONTO_FACTURADO += sale.MONTO_FACTURADO                    
+                        rec.SALE_ITBIS_TOTAL += sale.ITBIS_FACTURADO
+                        rec.MONTO_FACTURADO_EXCENTO += sale.MONTO_FACTURADO_EXCENTO
 
                 summary_dict[sale.invoice_id.sale_fiscal_type]["count"] += 1
                 summary_dict[sale.invoice_id.sale_fiscal_type]["amount"] += sale.MONTO_FACTURADO
@@ -259,7 +276,7 @@ class DgiiReport(models.Model):
         what matter is the document/identification of the provider,
         if this is of kind of "cedula", so it is informal.
     '''
-    def get_late_paid_invoice_with_retentions(self, start_date, end_date): #back01
+    def get_late_paid_invoice_with_retentions(self, start_date, end_date):
 
         invoices = self.env["account.invoice"] # this is like define an empty array|object
 
