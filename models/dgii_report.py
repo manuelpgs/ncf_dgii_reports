@@ -800,14 +800,20 @@ class DgiiReport(models.Model):
 
             '''
                 Avoid set "ITBIS RETENIDO POR TERCEROS" and any payment form instead
-                "A CRÉDITO" for invoice paid months laters (and other stuff)
+                "A CRÉDITO" for invoice paid months laters (and other stuff).
+                
+                This case happen when for example an invoice was issue on June 2018,
+                then the customer paid it on July 2018 and he made retentions.
+                If you come back to June reports and re-generate it (or if ODOO re-generate it when you enter to it)
+                Then, without this validation below, you should see in the report for June those retentions,
+                what is wrong because the invoice wasn't paid in that month.
             '''
             month, year = self.name.split("/")
             invoiceMonth = int(invoice.date_invoice[5:7])
             retentionMonth = int(FECHA_RETENCION[5:7]) if FECHA_RETENCION else False
             periodMonth = int(month)
 
-            if invoiceMonth != retentionMonth and invoiceMonth == periodMonth:
+            if retentionMonth and invoiceMonth != retentionMonth and invoiceMonth == periodMonth:
                 commun_data['FECHA_RETENCION'] = None
                 commun_data['ITBIS_RETENIDO_POR_TERCEROS'] = 0
                 commun_data['MONTOS_A_CREDITO'] = invoice.amount_total_signed
