@@ -82,9 +82,12 @@ class DgiiReport(models.Model):
             "11": {"count": 0, "amount": 0.0},
         }
 
-        for rec in self: #self  = lines on model DgiiReportPurchaseLine
-            
-            report_month, report_year = rec.name.split("/")
+        for rec in self: #self  = lines on model DgiiReportPurchaseLine        
+
+            if rec.name:
+                report_month, report_year = rec.name.split("/")
+            else:
+                report_month = report_year = False
             
             rec.ITBIS_TOTAL = 0
             rec.ITBIS_TOTAL_NC = 0
@@ -197,7 +200,10 @@ class DgiiReport(models.Model):
 
         for rec in self:
             
-            report_month, report_year = rec.name.split("/")
+            if rec.name:
+                report_month, report_year = rec.name.split("/")
+            else:
+                report_month = report_year = False            
 
             rec.SALE_ITBIS_TOTAL = 0
             rec.SALE_ITBIS_NC = 0
