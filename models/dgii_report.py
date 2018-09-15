@@ -1702,9 +1702,23 @@ class DgiiReportPurchaseLine(models.Model):
         return FORMA_PAGO_STR
 
     def _get_str(self):
+
+        ISR_RETENTION_TYPE = {
+            False: '',
+            '01': 'Alquileres (01)',
+            '02': 'Honorarios por servicios (02)',
+            '03': 'Otras rentas (03)',
+            '04': 'Otras rentas (rentas presuntas) (04)',
+            '05': 'Intereses pagados a personas jurídicas residentes (05)',
+            '06': 'Intereses pagados a personas físicas residentes (06)',
+            '07': 'Retención por proveedores del Estado (07)',
+            '08': 'Juegos telefónicos (08)'
+        }
+
         for rec in self:
             rec.TIPO_IDENTIFICACION_STR = "RNC (1)" if rec.TIPO_IDENTIFICACION == '1' else "C.I. (2)"
-            rec.FORMA_PAGO_STR = self.get_str_forma_pago(rec.FORMA_PAGO)
+            rec.FORMA_PAGO_STR = self.get_str_forma_pago(rec.FORMA_PAGO)            
+            rec.TIPO_RETENCION_ISR_STR = ISR_RETENTION_TYPE[rec.TIPO_RETENCION_ISR]
 
     dgii_report_id = fields.Many2one("dgii.report")
     LINE = fields.Integer("Line")
@@ -1742,6 +1756,7 @@ class DgiiReportPurchaseLine(models.Model):
 
     TIPO_IDENTIFICACION_STR = fields.Char(u"2 - Tipo Identificación", compute=_get_str)
     FORMA_PAGO_STR = fields.Char(u"23 - Forma de Pago", compute=_get_str, size=20)
+    TIPO_RETENCION_ISR_STR = fields.Char(u"17 - Tipo de Retención en ISR", compute=_get_str, size=30)
 
 
 class DgiiReportSaleLine(models.Model):

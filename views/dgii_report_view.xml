@@ -444,7 +444,7 @@
                                         <field name="ITBIS_LLEVADO_ALCOSTO" sum="Total ITBIS llevado al Costo"/>
                                         <field name="ITBIS_POR_ADELANTAR" sum="Total ITBIS por Adelantar"/>
                                         <field name="ITBIS_PERCIBIDO_COMPRAS" sum="Total ITBIS Percibido en Compras"/>
-                                        <field name="TIPO_RETENCION_ISR" />
+                                        <field name="TIPO_RETENCION_ISR_STR" />
                                         <field name="RETENCION_RENTA" sum="Total Retención Renta"/>
                                         <field name="ISR_PERCIBIDO_COMPRAS" sum="Total ISR Percibido en Compras"/>
                                         <field name="IMPUESTO_ISC" sum="Total ISC"/>
