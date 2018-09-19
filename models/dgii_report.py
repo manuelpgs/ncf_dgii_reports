@@ -82,13 +82,13 @@ class DgiiReport(models.Model):
             "11": {"count": 0, "amount": 0.0},
         }
 
-        for rec in self: #self  = lines on model DgiiReportPurchaseLine        
+        for rec in self: #self  = lines on model DgiiReportPurchaseLine
 
             if rec.name:
                 report_month, report_year = rec.name.split("/")
             else:
                 report_month = report_year = False
-            
+
             rec.ITBIS_TOTAL = 0
             rec.ITBIS_TOTAL_NC = 0
             rec.ITBIS_TOTAL_PAYMENT = 0
@@ -117,7 +117,7 @@ class DgiiReport(models.Model):
                 ncf_year, ncf_month, ncf_day = purchase.FECHA_COMPROBANTE.split("-")
 
                 if TIPO_COMPROBANTE == "04": # 04 = NOTAS DE CRÉDITOS #TODO check to validate NC for Monto Facturado Bienes/Servicios
-                
+
                     rec.ITBIS_TOTAL_NC += purchase.ITBIS_FACTURADO_TOTAL
                     rec.TOTAL_MONTO_NC += purchase.MONTO_FACTURADO
                     rec.ITBIS_RETENIDO -= purchase.ITBIS_RETENIDO
@@ -132,9 +132,9 @@ class DgiiReport(models.Model):
                     rec.IMPUESTO_ISC -= purchase.IMPUESTO_ISC
                     rec.IMPUESTOS_OTROS -= purchase.IMPUESTOS_OTROS
                     rec.MONTO_PROPINA_LEGAL -= purchase.MONTO_PROPINA_LEGAL
-                
+
                 elif purchase.NUMERO_COMPROBANTE_MODIFICADO == False:
-                    
+
                     if int(report_month) == int(ncf_month) and report_year == ncf_year: # this validation is to avoid add amounts of invoices of previous months
                         rec.TOTAL_MONTO_FACTURADO += purchase.MONTO_FACTURADO
                         rec.MONTO_FACTURADO_SERVICIOS += purchase.MONTO_FACTURADO_SERVICIOS
@@ -148,7 +148,7 @@ class DgiiReport(models.Model):
                     rec.ITBIS_SUJETO_PROPORCIONALIDAD += purchase.ITBIS_SUJETO_PROPORCIONALIDAD
                     rec.ITBIS_LLEVADO_ALCOSTO += purchase.ITBIS_LLEVADO_ALCOSTO
                     rec.ITBIS_POR_ADELANTAR += purchase.ITBIS_POR_ADELANTAR
-                    rec.ITBIS_PERCIBIDO_COMPRAS += purchase.ITBIS_PERCIBIDO_COMPRAS                    
+                    rec.ITBIS_PERCIBIDO_COMPRAS += purchase.ITBIS_PERCIBIDO_COMPRAS
                     rec.ISR_PERCIBIDO_COMPRAS += purchase.ISR_PERCIBIDO_COMPRAS
                     rec.IMPUESTO_ISC += purchase.IMPUESTO_ISC
                     rec.IMPUESTOS_OTROS += purchase.IMPUESTOS_OTROS
@@ -189,21 +189,21 @@ class DgiiReport(models.Model):
     @api.depends("sale_report")
     def _sale_report_totals(self):
 
-        # Tipos de NCFs by name
+        # Tipos de NCF
         summary_dict = {
-            "final": {"count": 0, "amount": 0.0},
-            "fiscal": {"count": 0, "amount": 0.0},
-            "gov": {"count": 0, "amount": 0.0},
-            "special": {"count": 0, "amount": 0.0},
-            "unico": {"count": 0, "amount": 0.0},
+            "final": {"current_month_count": 0, "current_month_amount": 0.0, "previous_months_count": 0, "previous_months_amount": 0.0},
+            "fiscal": {"current_month_count": 0, "current_month_amount": 0.0, "previous_months_count": 0, "previous_months_amount": 0.0},
+            "gov": {"current_month_count": 0, "current_month_amount": 0.0, "previous_months_count": 0, "previous_months_amount": 0.0},
+            "special": {"current_month_count": 0, "current_month_amount": 0.0, "previous_months_count": 0, "previous_months_amount": 0.0},
+            "unico": {"current_month_count": 0, "current_month_amount": 0.0, "previous_months_count": 0, "previous_months_amount": 0.0},
         }
 
         for rec in self:
-            
+
             if rec.name:
                 report_month, report_year = rec.name.split("/")
             else:
-                report_month = report_year = False            
+                report_month = report_year = False
 
             rec.SALE_ITBIS_TOTAL = 0
             rec.SALE_ITBIS_NC = 0
@@ -215,37 +215,58 @@ class DgiiReport(models.Model):
 
             for sale in rec.sale_report:
 
+                TIPO_COMPROBANTE = self.getTipoComprobante(sale)
                 ncf_year, ncf_month, ncf_day = sale.FECHA_COMPROBANTE.split("-")
 
-                if sale.NUMERO_COMPROBANTE_FISCAL[9:-8] == "04":
+                if TIPO_COMPROBANTE == "04": # 04 = NOTAS DE CRÉDITOS
+
                     rec.SALE_ITBIS_NC += sale.ITBIS_FACTURADO
                     rec.SALE_TOTAL_MONTO_NC += sale.MONTO_FACTURADO
                     #TODO falta manejar las notas de credito que afectan facturas de otro periodo.
                     rec.MONTO_FACTURADO_EXCENTO -= sale.MONTO_FACTURADO_EXCENTO
+
                 else:
 
-                    if int(report_month) == int(ncf_month) and report_year == ncf_year: # this validation is to avoid add amounts of invoices of previous months                    
-                        rec.SALE_TOTAL_MONTO_FACTURADO += sale.MONTO_FACTURADO                    
+                    if int(report_month) == int(ncf_month) and report_year == ncf_year: # this validation is to avoid add amounts of invoices of previous months
+
+                        rec.SALE_TOTAL_MONTO_FACTURADO += sale.MONTO_FACTURADO
                         rec.SALE_ITBIS_TOTAL += sale.ITBIS_FACTURADO
                         rec.MONTO_FACTURADO_EXCENTO += sale.MONTO_FACTURADO_EXCENTO
 
-                summary_dict[sale.invoice_id.sale_fiscal_type]["count"] += 1
-                summary_dict[sale.invoice_id.sale_fiscal_type]["amount"] += sale.MONTO_FACTURADO
+                        summary_dict[sale.invoice_id.sale_fiscal_type]["current_month_count"] += 1
+                        summary_dict[sale.invoice_id.sale_fiscal_type]["current_month_amount"] += sale.MONTO_FACTURADO
+
+                    else:
+
+                        summary_dict[sale.invoice_id.sale_fiscal_type]["previous_months_count"] += 1
+                        summary_dict[sale.invoice_id.sale_fiscal_type]["previous_months_amount"] += sale.MONTO_FACTURADO
+
 
             rec.SALE_ITBIS_CHARGED = rec.SALE_ITBIS_TOTAL - rec.SALE_ITBIS_NC
             rec.SALE_TOTAL_MONTO_CHARGED = rec.SALE_TOTAL_MONTO_FACTURADO - rec.SALE_TOTAL_MONTO_NC
 
-            rec.count_final = summary_dict["final"]["count"]
+            # Resumen by kind of NCF
+            rec.count_final = summary_dict["final"]["current_month_count"]
+            rec.amount_final = summary_dict["final"]["current_month_amount"]
 
-            rec.count_fiscal = summary_dict["fiscal"]["count"]
-            rec.count_gov = summary_dict["gov"]["count"]
-            rec.count_special = summary_dict["special"]["count"]
-            rec.count_unico = summary_dict["unico"]["count"]
-            rec.amount_final = summary_dict["final"]["amount"]
-            rec.amount_fiscal = summary_dict["fiscal"]["amount"]
-            rec.amount_gov = summary_dict["gov"]["amount"]
-            rec.amount_special = summary_dict["special"]["amount"]
-            rec.amount_unico = summary_dict["unico"]["amount"]
+            rec.count_fiscal = summary_dict["fiscal"]["current_month_count"]
+            rec.amount_fiscal = summary_dict["fiscal"]["current_month_amount"]
+            rec.count_fiscal_previous_months = summary_dict["fiscal"]["previous_months_count"]
+            rec.amount_fiscal_previous_months = summary_dict["fiscal"]["previous_months_amount"]
+
+            rec.count_gov = summary_dict["gov"]["current_month_count"]
+            rec.amount_gov = summary_dict["gov"]["current_month_amount"]
+
+            rec.count_special = summary_dict["special"]["current_month_count"]
+            rec.amount_special = summary_dict["special"]["current_month_amount"]
+
+            rec.count_unico = summary_dict["unico"]["current_month_count"]
+            rec.amount_unico = summary_dict["unico"]["current_month_amount"]
+
+            # ANEXO A (assignation)
+            rec.ANEXO_A_CASILLA_1_CANTIDAD_NCF = rec.count_fiscal
+            rec.ANEXO_A_CASILLA_1_MONTO = rec.SALE_TOTAL_MONTO_FACTURADO
+
 
     @api.multi
     @api.depends("purchase_report", "sale_report")
@@ -801,7 +822,7 @@ class DgiiReport(models.Model):
             '''
                 Avoid set "ITBIS RETENIDO POR TERCEROS" and any payment form instead
                 "A CRÉDITO" for invoice paid months laters (and other stuff).
-                
+
                 This case happen when for example an invoice was issue on June 2018,
                 then the customer paid it on July 2018 and he made retentions.
                 If you come back to June reports and re-generate it (or if ODOO re-generate it when you enter to it)
@@ -1648,14 +1669,20 @@ class DgiiReport(models.Model):
 
     # 607 type summary
     count_final = fields.Integer(compute=_sale_report_totals)
-    count_fiscal = fields.Integer(compute=_sale_report_totals)
-    count_gov = fields.Integer(compute=_sale_report_totals)
-    count_special = fields.Integer(compute=_sale_report_totals)
-    count_unico = fields.Integer(compute=_sale_report_totals)
     amount_final = fields.Integer(compute=_sale_report_totals)
+
+    count_fiscal = fields.Integer(compute=_sale_report_totals)
+    count_fiscal_previous_months = fields.Integer(compute=_sale_report_totals)
     amount_fiscal = fields.Integer(compute=_sale_report_totals)
+    amount_fiscal_previous_months = fields.Integer(compute=_sale_report_totals)
+
+    count_gov = fields.Integer(compute=_sale_report_totals)
     amount_gov = fields.Integer(compute=_sale_report_totals)
+
+    count_special = fields.Integer(compute=_sale_report_totals)
     amount_special = fields.Integer(compute=_sale_report_totals)
+
+    count_unico = fields.Integer(compute=_sale_report_totals)
     amount_unico = fields.Integer(compute=_sale_report_totals)
 
     # 608
@@ -1672,6 +1699,10 @@ class DgiiReport(models.Model):
     exterior_binary = fields.Binary(string=u"Archivo 607 TXT")
 
     state = fields.Selection([('draft', 'Nuevo'), ('error', 'Con errores'), ('done', 'Validado')], default="draft")
+
+    # ANEXO A (fields)
+    ANEXO_A_CASILLA_1_CANTIDAD_NCF = fields.Integer(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_1_MONTO = fields.Float(compute=_sale_report_totals)
 
 
 
@@ -1717,7 +1748,7 @@ class DgiiReportPurchaseLine(models.Model):
 
         for rec in self:
             rec.TIPO_IDENTIFICACION_STR = "RNC (1)" if rec.TIPO_IDENTIFICACION == '1' else "C.I. (2)"
-            rec.FORMA_PAGO_STR = self.get_str_forma_pago(rec.FORMA_PAGO)            
+            rec.FORMA_PAGO_STR = self.get_str_forma_pago(rec.FORMA_PAGO)
             rec.TIPO_RETENCION_ISR_STR = ISR_RETENTION_TYPE[rec.TIPO_RETENCION_ISR]
 
     dgii_report_id = fields.Many2one("dgii.report")

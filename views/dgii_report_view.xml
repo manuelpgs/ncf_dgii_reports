@@ -110,13 +110,13 @@
                                             </td>
                                         </tr>
                                         <tr class="warning">
-                                            <th class="tg-yw4l">MONTO TOTAL FACTURADO - MONTO TOTAL EN NOTAS DE CREDITO</th>
+                                            <th class="tg-yw4l">MONTO TOTAL FACTURADO (menos) MONTO TOTAL EN NOTAS DE CREDITO</th>
                                             <td class="text-center">
                                                 <field name="TOTAL_MONTO_PAYMENT"/>
                                             </td>
                                         </tr>
                                         <tr class="warning">
-                                            <th class="tg-yw4l">ITBIS TOTAL EN COMPRAS - ITBIS TOTAL EN NOTAS DE CRÉDITO</th>
+                                            <th class="tg-yw4l">ITBIS TOTAL EN COMPRAS (menos) ITBIS TOTAL EN NOTAS DE CRÉDITO</th>
                                             <td class="text-center">
                                                 <field name="ITBIS_TOTAL_PAYMENT"/>
                                             </td>
@@ -288,13 +288,13 @@
                                             </td>
                                         </tr>
                                         <tr class="warning">
-                                            <th class="tg-yw4l">MONTO TOTAL DE VENTAS - MONTO TOTAL EN NOTAS DE CREDITO</th>
+                                            <th class="tg-yw4l">MONTO TOTAL DE VENTAS (menos) MONTO TOTAL EN NOTAS DE CREDITO</th>
                                             <td class="text-center">
                                                 <field name="SALE_TOTAL_MONTO_CHARGED"/>
                                             </td>
                                         </tr>
                                         <tr class="warning">
-                                            <th class="tg-yw4l">ITBIS TOTAL EN VENTAS - ITBIS TOTAL EN NOTAS DE CRÉDITO</th>
+                                            <th class="tg-yw4l">ITBIS TOTAL EN VENTAS (menos) ITBIS TOTAL EN NOTAS DE CRÉDITO</th>
                                             <td class="text-center">
                                                 <field name="SALE_ITBIS_CHARGED"/>
                                             </td>
@@ -331,12 +331,21 @@
                                             </td>
                                         </tr>
                                         <tr>
-                                            <th>Para credito fiscal</th>
+                                            <th>Para credito fiscal (período actual)</th>
                                             <td class="tg-yw4l text-center">
                                                 <field name="count_fiscal"/>
                                             </td>
                                             <td class="tg-yw4l text-right">
                                                 <field name="amount_fiscal"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Para credito fiscal (meses previos)</th>
+                                            <td class="tg-yw4l text-center">
+                                                <field name="count_fiscal_previous_months"/>
+                                            </td>
+                                            <td class="tg-yw4l text-right">
+                                                <field name="amount_fiscal_previous_months"/>
                                             </td>
                                         </tr>
                                         <tr>
@@ -418,6 +427,44 @@
                                         </tr>
                                     </table>
                                 </group>
+
+                                <group style="width: 100%"><h2>GUÍA DEL IT1</h2></group>
+                                <br />
+                                <group style="width: 100%">
+                                    
+                                    <div style="padding: 5px 0; font-weight: 600; color: #7c7bad">ANEXO A: COLOCAR LOS SIGUIENTES VALORES EN LA CASILLA INDICADA</div>
+                                    <br />
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <tr>
+                                            <th colspan="2">CASILLA</th>
+                                            <th>CANTIDAD NCF</th>
+                                            <th>MONTO</th>
+                                        </tr>
+                                        <tr>
+                                            <th>1</th>
+                                            <th>COMPROBANTE VÁLIDO PARA CRÉDITO FISCAL (01)</th>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_1_CANTIDAD_NCF"/></td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_1_MONTO"/></td>
+                                        </tr>
+                                    </table>
+
+                                    <br />
+                                    <div style="padding: 5px 0; font-weight: 600; color: #7c7bad">IT1: COLOCAR LOS SIGUIENTES VALORES EN LA CASILLA INDICADA</div>
+                                    <br />
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <tr>
+                                            <th colspan="2">CASILLA</th>
+                                            <th>CANTIDAD NCF</th>
+                                            <th>MONTO</th>
+                                        </tr>
+                                        <tr>
+                                            <th>1</th>
+                                            <th></th>
+                                            <th></th>
+                                        </tr>
+                                    </table>                                  
+                                </group>
+
                             </group>
                         </group>
 
