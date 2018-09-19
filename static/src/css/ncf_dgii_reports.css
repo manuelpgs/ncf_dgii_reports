@@ -1,2 +1,7 @@
 div.o_form_sheet { max-width: 100% !important; background: #fcfcfc !important; }
 div.o_group { width: auto !important; margin: 0 auto !important; display: block !important; background: #fff; padding: 0 20px;  }
+
+.table > thead > tr > td.black, .table > tbody > tr > td.black, .table > tfoot > tr > td.black, .table > thead > tr > th.black, .table > tbody > tr > th.black, .table > tfoot > tr > th.black, .table > thead > tr.black > td, .table > tbody > tr.black > td, .table > tfoot > tr.black > td, .table > thead > tr.black > th, .table > tbody > tr.black > th, .table > tfoot > tr.black > th {
+    background-color: #222;
+    color: #fff;
+}

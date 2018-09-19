@@ -46,6 +46,7 @@ Luego de implementar este módulo, se recomienda hacer una revisión manual de l
 - En el 607, la columna 12 *RETENCIÓN RENTA POR TERCEROS* no está programada para los negocios que aplica como puede ser un negocio que este registrado con su CÉDULA en lugar de un RNC.
 - En el 607, las columnas *14-ISC, 15-Otros Impuestos/Taxas y 16-Monto Propina Legal* no estan programada, para un negocio que las requiera, se le deben programar.
 - Estos reportes no tienen programación para las Notas de Débito aún.
+- Las guías del IT1 y el ANEXO A, solo toman en cuenta los comprobantes del tipo 01 (crédito fiscal) que emite el comercio.
 
 
 ### Créditos:  Basado en el trabajo de Eneldo Serrata para Marcos Organizador de Negocios SRL. (https://marcos.do/) 

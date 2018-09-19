@@ -198,43 +198,54 @@ class DgiiReport(models.Model):
             "unico": {"current_month_count": 0, "current_month_amount": 0.0, "previous_months_count": 0, "previous_months_amount": 0.0},
         }
 
-        for rec in self:
+        for reporte in self:
 
-            if rec.name:
-                report_month, report_year = rec.name.split("/")
+            if reporte.name:
+                report_month, report_year = reporte.name.split("/")
             else:
                 report_month = report_year = False
 
-            rec.SALE_ITBIS_TOTAL = 0
-            rec.SALE_ITBIS_NC = 0
-            rec.SALE_ITBIS_CHARGED = 0
-            rec.SALE_TOTAL_MONTO_FACTURADO = 0
-            rec.SALE_TOTAL_MONTO_NC = 0
-            rec.SALE_TOTAL_MONTO_CHARGED = 0
-            rec.MONTO_FACTURADO_EXCENTO = 0
+            reporte.SALE_ITBIS_TOTAL = 0
+            reporte.SALE_ITBIS_NC = 0
+            reporte.SALE_ITBIS_CHARGED = 0
+            reporte.SALE_TOTAL_MONTO_FACTURADO = 0
+            reporte.SALE_TOTAL_MONTO_NC = 0
+            reporte.SALE_TOTAL_MONTO_CHARGED = 0
+            reporte.MONTO_FACTURADO_EXCENTO = 0
+            reporte.ANEXO_A_CASILLA_11_EFECTIVO = reporte.ANEXO_A_CASILLA_12_CHEQUE_TRANSFERENCIA = reporte.ANEXO_A_CASILLA_13_TARJETA_DEBITO_CREDITO \
+                = reporte.ANEXO_A_CASILLA_14_A_CREDITO = reporte.ANEXO_A_CASILLA_15_BONOS_CERTIFICADOS \
+                = reporte.ANEXO_A_CASILLA_16_PERMUTAS = reporte.ANEXO_A_CASILLA_17_OTRAS_FORMAS_VENTAS = 0
 
-            for sale in rec.sale_report:
+            for sale in reporte.sale_report:
 
                 TIPO_COMPROBANTE = self.getTipoComprobante(sale)
                 ncf_year, ncf_month, ncf_day = sale.FECHA_COMPROBANTE.split("-")
 
                 if TIPO_COMPROBANTE == "04": # 04 = NOTAS DE CRÉDITOS
 
-                    rec.SALE_ITBIS_NC += sale.ITBIS_FACTURADO
-                    rec.SALE_TOTAL_MONTO_NC += sale.MONTO_FACTURADO
+                    reporte.SALE_ITBIS_NC += sale.ITBIS_FACTURADO
+                    reporte.SALE_TOTAL_MONTO_NC += sale.MONTO_FACTURADO
                     #TODO falta manejar las notas de credito que afectan facturas de otro periodo.
-                    rec.MONTO_FACTURADO_EXCENTO -= sale.MONTO_FACTURADO_EXCENTO
+                    reporte.MONTO_FACTURADO_EXCENTO -= sale.MONTO_FACTURADO_EXCENTO
 
                 else:
 
                     if int(report_month) == int(ncf_month) and report_year == ncf_year: # this validation is to avoid add amounts of invoices of previous months
 
-                        rec.SALE_TOTAL_MONTO_FACTURADO += sale.MONTO_FACTURADO
-                        rec.SALE_ITBIS_TOTAL += sale.ITBIS_FACTURADO
-                        rec.MONTO_FACTURADO_EXCENTO += sale.MONTO_FACTURADO_EXCENTO
+                        reporte.SALE_TOTAL_MONTO_FACTURADO += sale.MONTO_FACTURADO
+                        reporte.SALE_ITBIS_TOTAL += sale.ITBIS_FACTURADO
+                        reporte.MONTO_FACTURADO_EXCENTO += sale.MONTO_FACTURADO_EXCENTO
 
                         summary_dict[sale.invoice_id.sale_fiscal_type]["current_month_count"] += 1
                         summary_dict[sale.invoice_id.sale_fiscal_type]["current_month_amount"] += sale.MONTO_FACTURADO
+                        
+                        reporte.ANEXO_A_CASILLA_11_EFECTIVO += sale.MONTOS_PAGADOS_EFECTIVO
+                        reporte.ANEXO_A_CASILLA_12_CHEQUE_TRANSFERENCIA += sale.MONTOS_PAGADOS_BANCO
+                        reporte.ANEXO_A_CASILLA_13_TARJETA_DEBITO_CREDITO += sale.MONTOS_PAGADOS_TARJETAS
+                        reporte.ANEXO_A_CASILLA_14_A_CREDITO += sale.MONTOS_A_CREDITO
+                        reporte.ANEXO_A_CASILLA_15_BONOS_CERTIFICADOS += sale.MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS
+                        reporte.ANEXO_A_CASILLA_16_PERMUTAS += sale.MONTOS_EN_PERMUTA
+                        reporte.ANEXO_A_CASILLA_17_OTRAS_FORMAS_VENTAS += sale.MONTOS_EN_OTRAS_FORMAS_VENTAS
 
                     else:
 
@@ -242,30 +253,34 @@ class DgiiReport(models.Model):
                         summary_dict[sale.invoice_id.sale_fiscal_type]["previous_months_amount"] += sale.MONTO_FACTURADO
 
 
-            rec.SALE_ITBIS_CHARGED = rec.SALE_ITBIS_TOTAL - rec.SALE_ITBIS_NC
-            rec.SALE_TOTAL_MONTO_CHARGED = rec.SALE_TOTAL_MONTO_FACTURADO - rec.SALE_TOTAL_MONTO_NC
+            reporte.SALE_ITBIS_CHARGED = reporte.SALE_ITBIS_TOTAL - reporte.SALE_ITBIS_NC
+            reporte.SALE_TOTAL_MONTO_CHARGED = reporte.SALE_TOTAL_MONTO_FACTURADO - reporte.SALE_TOTAL_MONTO_NC
 
             # Resumen by kind of NCF
-            rec.count_final = summary_dict["final"]["current_month_count"]
-            rec.amount_final = summary_dict["final"]["current_month_amount"]
+            reporte.count_final = summary_dict["final"]["current_month_count"]
+            reporte.amount_final = summary_dict["final"]["current_month_amount"]
 
-            rec.count_fiscal = summary_dict["fiscal"]["current_month_count"]
-            rec.amount_fiscal = summary_dict["fiscal"]["current_month_amount"]
-            rec.count_fiscal_previous_months = summary_dict["fiscal"]["previous_months_count"]
-            rec.amount_fiscal_previous_months = summary_dict["fiscal"]["previous_months_amount"]
+            reporte.count_fiscal = summary_dict["fiscal"]["current_month_count"]
+            reporte.amount_fiscal = summary_dict["fiscal"]["current_month_amount"]
+            reporte.count_fiscal_previous_months = summary_dict["fiscal"]["previous_months_count"]
+            reporte.amount_fiscal_previous_months = summary_dict["fiscal"]["previous_months_amount"]
 
-            rec.count_gov = summary_dict["gov"]["current_month_count"]
-            rec.amount_gov = summary_dict["gov"]["current_month_amount"]
+            reporte.count_gov = summary_dict["gov"]["current_month_count"]
+            reporte.amount_gov = summary_dict["gov"]["current_month_amount"]
 
-            rec.count_special = summary_dict["special"]["current_month_count"]
-            rec.amount_special = summary_dict["special"]["current_month_amount"]
+            reporte.count_special = summary_dict["special"]["current_month_count"]
+            reporte.amount_special = summary_dict["special"]["current_month_amount"]
 
-            rec.count_unico = summary_dict["unico"]["current_month_count"]
-            rec.amount_unico = summary_dict["unico"]["current_month_amount"]
+            reporte.count_unico = summary_dict["unico"]["current_month_count"]
+            reporte.amount_unico = summary_dict["unico"]["current_month_amount"]
 
             # ANEXO A (assignation)
-            rec.ANEXO_A_CASILLA_1_CANTIDAD_NCF = rec.count_fiscal
-            rec.ANEXO_A_CASILLA_1_MONTO = rec.SALE_TOTAL_MONTO_FACTURADO
+            reporte.ANEXO_A_CASILLA_1_CANTIDAD_NCF = reporte.count_fiscal
+            reporte.ANEXO_A_CASILLA_1_MONTO = reporte.SALE_TOTAL_MONTO_FACTURADO
+            reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES = reporte.SALE_TOTAL_MONTO_FACTURADO #TODO need to be update for other kind of invoices than 01 "Crédito Fiscal"
+            reporte.ANEXO_A_CASILLA_18_TOTAL_OPERACIONES_TIPO_VENTA =  reporte.ANEXO_A_CASILLA_11_EFECTIVO + reporte.ANEXO_A_CASILLA_12_CHEQUE_TRANSFERENCIA \
+                + reporte.ANEXO_A_CASILLA_13_TARJETA_DEBITO_CREDITO + reporte.ANEXO_A_CASILLA_14_A_CREDITO + reporte.ANEXO_A_CASILLA_15_BONOS_CERTIFICADOS \
+                + reporte.ANEXO_A_CASILLA_16_PERMUTAS + reporte.ANEXO_A_CASILLA_17_OTRAS_FORMAS_VENTAS
 
 
     @api.multi
@@ -1703,6 +1718,15 @@ class DgiiReport(models.Model):
     # ANEXO A (fields)
     ANEXO_A_CASILLA_1_CANTIDAD_NCF = fields.Integer(compute=_sale_report_totals)
     ANEXO_A_CASILLA_1_MONTO = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_10_TOTAL_OPERACIONES = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_11_EFECTIVO = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_12_CHEQUE_TRANSFERENCIA = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_13_TARJETA_DEBITO_CREDITO = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_14_A_CREDITO = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_15_BONOS_CERTIFICADOS = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_16_PERMUTAS = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_17_OTRAS_FORMAS_VENTAS = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_18_TOTAL_OPERACIONES_TIPO_VENTA = fields.Float(compute=_sale_report_totals)
 
 
 

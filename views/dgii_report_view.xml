@@ -24,13 +24,9 @@
                                     <field name="company_id" readonly="1"/>
                                     <field name="name" widget="mask" data-inputmask="'mask': '99/9999'"/>
                                     <field name="positive_balance"/>
-                                </group>
+                                </group>                            
 
-                                <div class="separator"></div>
-
-                                <group style="width: 100%"> <hr /> </group>
-
-                                <group style="width: 100%">
+                                <!-- <group style="width: 100% display: none;">
                                     <table class="table table-striped table-bordered table-condensed">
                                         <tr>
                                             <th colspan="2">Declaraciones del IT-1 e IR-17 (no funciona)</th>
@@ -48,7 +44,7 @@
                                             </td>
                                         </tr>
                                     </table>
-                                </group>
+                                </group> -->
 
                             <div class="separator"></div>
                             <group>
@@ -72,13 +68,13 @@
                                             <td class="text-center">
                                                 <field name="MONTO_FACTURADO_SERVICIOS"/>
                                             </td>
-                                        </tr>                                    
+                                        </tr>
                                         <tr class="success">
                                             <th class="tg-yw4l">MONTO FACTURADO BIENES</th>
                                             <td class="text-center">
                                                 <field name="MONTO_FACTURADO_BIENES"/>
                                             </td>
-                                        </tr>                                    
+                                        </tr>
                                         <tr class="success">
                                             <th class="tg-yw4l">ITBIS TOTAL EN COMPRAS</th>
                                             <td class="text-center">
@@ -96,7 +92,7 @@
                                             <td class="text-center">
                                                 <field name="ITBIS_FACTURADO_SERVICIOS"/>
                                             </td>
-                                        </tr>                                    
+                                        </tr>
                                         <tr class="info">
                                             <th class="tg-yw4l">MONTO TOTAL EN NOTAS DE CREDITO</th>
                                             <td class="text-center">
@@ -252,7 +248,7 @@
                                         </tr>
                                     </table>
                                 </group>
-                                
+
                                 <group style="width: 100%"><h2>Reporte 607</h2></group>
                                 <div class="separator"></div>
                                 <group style="width: 100%">
@@ -431,20 +427,117 @@
                                 <group style="width: 100%"><h2>GUÍA DEL IT1</h2></group>
                                 <br />
                                 <group style="width: 100%">
-                                    
+
                                     <div style="padding: 5px 0; font-weight: 600; color: #7c7bad">ANEXO A: COLOCAR LOS SIGUIENTES VALORES EN LA CASILLA INDICADA</div>
                                     <br />
                                     <table class="table table-striped table-bordered table-condensed">
                                         <tr>
-                                            <th colspan="2">CASILLA</th>
+                                            <th colspan="2">II. OPERACIONES REPORTADAS EN EL 607 / LIBRO DE VENTAS POR TIPO DE NCF</th>
                                             <th>CANTIDAD NCF</th>
                                             <th>MONTO</th>
                                         </tr>
                                         <tr>
-                                            <th>1</th>
+                                            <td>1</td>
                                             <th>COMPROBANTE VÁLIDO PARA CRÉDITO FISCAL (01)</th>
                                             <td class="text-center"><field name="ANEXO_A_CASILLA_1_CANTIDAD_NCF"/></td>
                                             <td class="text-center"><field name="ANEXO_A_CASILLA_1_MONTO"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2</td>
+                                            <td>COMPROBANTE CONSUMIDOR FINAL (02)</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>3</td>
+                                            <td>NOTAS DE DÉBITO (03)</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>4</td>
+                                            <td>NOTAS DE CRÉDITO (04)</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>5</td>
+                                            <td>COMPROBANTE REGISTRO ÚNICO DE INGRESOS (12)</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>6</td>
+                                            <td>COMPROBANTE REGISTRO REGIMES ESPECIALES (14)</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>7</td>
+                                            <td>COMPROBANTE GUBERNAMENTALES (15)</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>8</td>
+                                            <td>OTRAS OPERACIONES (POSITIVAS)</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>9</td>
+                                            <th>OTRAS OPERACIONES (NEGATIVAS)</th>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr class="info">
+                                            <th>10</th>
+                                            <th colspan="2">TOTAL OPERACIONES (suma de casillas 1+2+3+4+5+6+7+8+9)</th>
+                                            <th class="text-center"><field name="ANEXO_A_CASILLA_10_TOTAL_OPERACIONES"/></th>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="3">III. OPERACIONES REPORTADAS EN EL 607 / LIBRO DE VENTAS POR TIPO DE VENTA (MONTO TOTAL INCLUYE IMPUESTOS)</th>
+                                            <th>MONTO BRUTO</th>
+                                        </tr>
+                                        <tr>
+                                            <td>11</td>
+                                            <td colspan="2">EFECTIVO</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_11_EFECTIVO"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>12</td>
+                                            <td colspan="2">CHEQUE / TRANSFERENCIA</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_12_CHEQUE_TRANSFERENCIA"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>13</td>
+                                            <td colspan="2">TARJETA DÉBITO / CRÉDITO</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_13_TARJETA_DEBITO_CREDITO"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>14</td>
+                                            <td colspan="2">A CRÉDITO</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_14_A_CREDITO"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>15</td>
+                                            <td colspan="2">BONOS O CERTIFICADO DE REGALO</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_15_BONOS_CERTIFICADOS"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>16</td>
+                                            <td colspan="2">PERMUTAS</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_16_PERMUTAS"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>17</td>
+                                            <td colspan="2">OTRAS FORMAS DE VENTA</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_17_OTRAS_FORMAS_VENTAS"/></td>
+                                        </tr>
+                                        <tr class="info">
+                                            <td>18</td>
+                                            <th colspan="2">TOTAL OPERACIONES POR TIPO DE VENTA (suma de casillas 11+12+13+14+15+16+17)</th>
+                                            <th class="text-center"><field name="ANEXO_A_CASILLA_18_TOTAL_OPERACIONES_TIPO_VENTA"/></th>
                                         </tr>
                                     </table>
 
@@ -462,14 +555,14 @@
                                             <th></th>
                                             <th></th>
                                         </tr>
-                                    </table>                                  
+                                    </table>
                                 </group>
 
                             </group>
                         </group>
 
                         <group style="width: 100%"> <hr /> </group>
-                        
+
                         <notebook>
                             <page string="606">
                                 <field name="purchase_report">
@@ -605,7 +698,7 @@
 
         <!-- This Menu Item must have a parent and an action -->
         <!-- parent="ncf_manager.marcos_account_dgii_menu" -->
-        <menuitem action="dgii_report_action" id="marcos_ncf_dgii_report_wizard_menu"                  
+        <menuitem action="dgii_report_action" id="marcos_ncf_dgii_report_wizard_menu"
                   parent="account.account_account_menu"
                   sequence="2"/>
 
