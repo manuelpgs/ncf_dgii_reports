@@ -215,6 +215,9 @@ class DgiiReport(models.Model):
             reporte.ANEXO_A_CASILLA_11_EFECTIVO = reporte.ANEXO_A_CASILLA_12_CHEQUE_TRANSFERENCIA = reporte.ANEXO_A_CASILLA_13_TARJETA_DEBITO_CREDITO \
                 = reporte.ANEXO_A_CASILLA_14_A_CREDITO = reporte.ANEXO_A_CASILLA_15_BONOS_CERTIFICADOS \
                 = reporte.ANEXO_A_CASILLA_16_PERMUTAS = reporte.ANEXO_A_CASILLA_17_OTRAS_FORMAS_VENTAS = 0
+            reporte.ANEXO_A_CASILLA_19_INGRESOS_X_OPERACIONES = reporte.ANEXO_A_CASILLA_20_INGRESOS_FINANCIEROS \
+                = reporte.ANEXO_A_CASILLA_21_INGRESOS_EXTRAORDINARIOS = reporte.ANEXO_A_CASILLA_22_INGRESOS_X_ARRENDAMIENTOS \
+                = reporte.ANEXO_A_CASILLA_23_IXVAD = reporte.ANEXO_A_CASILLA_24_OTROS_INGRESOS = 0
 
             for sale in reporte.sale_report:
 
@@ -246,6 +249,19 @@ class DgiiReport(models.Model):
                         reporte.ANEXO_A_CASILLA_15_BONOS_CERTIFICADOS += sale.MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS
                         reporte.ANEXO_A_CASILLA_16_PERMUTAS += sale.MONTOS_EN_PERMUTA
                         reporte.ANEXO_A_CASILLA_17_OTRAS_FORMAS_VENTAS += sale.MONTOS_EN_OTRAS_FORMAS_VENTAS
+
+                        if sale.TIPO_DE_INGRESO == 1:
+                            reporte.ANEXO_A_CASILLA_19_INGRESOS_X_OPERACIONES += sale.MONTO_FACTURADO
+                        elif sale.TIPO_DE_INGRESO == 2:
+                            reporte.ANEXO_A_CASILLA_20_INGRESOS_FINANCIEROS += sale.MONTO_FACTURADO
+                        elif sale.TIPO_DE_INGRESO == 3:
+                            reporte.ANEXO_A_CASILLA_21_INGRESOS_EXTRAORDINARIOS += sale.MONTO_FACTURADO
+                        elif sale.TIPO_DE_INGRESO == 4:
+                            reporte.ANEXO_A_CASILLA_22_INGRESOS_X_ARRENDAMIENTOS += sale.MONTO_FACTURADO
+                        elif sale.TIPO_DE_INGRESO == 5:
+                            reporte.ANEXO_A_CASILLA_23_IXVAD += sale.MONTO_FACTURADO
+                        elif sale.TIPO_DE_INGRESO == 6:
+                            reporte.ANEXO_A_CASILLA_24_OTROS_INGRESOS += sale.MONTO_FACTURADO
 
                     else:
 
@@ -281,6 +297,9 @@ class DgiiReport(models.Model):
             reporte.ANEXO_A_CASILLA_18_TOTAL_OPERACIONES_TIPO_VENTA =  reporte.ANEXO_A_CASILLA_11_EFECTIVO + reporte.ANEXO_A_CASILLA_12_CHEQUE_TRANSFERENCIA \
                 + reporte.ANEXO_A_CASILLA_13_TARJETA_DEBITO_CREDITO + reporte.ANEXO_A_CASILLA_14_A_CREDITO + reporte.ANEXO_A_CASILLA_15_BONOS_CERTIFICADOS \
                 + reporte.ANEXO_A_CASILLA_16_PERMUTAS + reporte.ANEXO_A_CASILLA_17_OTRAS_FORMAS_VENTAS
+            reporte.ANEXO_A_CASILLA_25_TOTAL_X_TIPO_INGRESO = reporte.ANEXO_A_CASILLA_19_INGRESOS_X_OPERACIONES + reporte.ANEXO_A_CASILLA_20_INGRESOS_FINANCIEROS \
+                + reporte.ANEXO_A_CASILLA_21_INGRESOS_EXTRAORDINARIOS + reporte.ANEXO_A_CASILLA_22_INGRESOS_X_ARRENDAMIENTOS \
+                + reporte.ANEXO_A_CASILLA_23_IXVAD + reporte.ANEXO_A_CASILLA_24_OTROS_INGRESOS
 
 
     @api.multi
@@ -1727,6 +1746,13 @@ class DgiiReport(models.Model):
     ANEXO_A_CASILLA_16_PERMUTAS = fields.Float(compute=_sale_report_totals)
     ANEXO_A_CASILLA_17_OTRAS_FORMAS_VENTAS = fields.Float(compute=_sale_report_totals)
     ANEXO_A_CASILLA_18_TOTAL_OPERACIONES_TIPO_VENTA = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_19_INGRESOS_X_OPERACIONES = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_20_INGRESOS_FINANCIEROS = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_21_INGRESOS_EXTRAORDINARIOS = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_22_INGRESOS_X_ARRENDAMIENTOS = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_23_IXVAD = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_24_OTROS_INGRESOS = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_25_TOTAL_X_TIPO_INGRESO = fields.Float(compute=_sale_report_totals)
 
 
 
