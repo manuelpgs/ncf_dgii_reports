@@ -218,6 +218,7 @@ class DgiiReport(models.Model):
             reporte.ANEXO_A_CASILLA_19_INGRESOS_X_OPERACIONES = reporte.ANEXO_A_CASILLA_20_INGRESOS_FINANCIEROS \
                 = reporte.ANEXO_A_CASILLA_21_INGRESOS_EXTRAORDINARIOS = reporte.ANEXO_A_CASILLA_22_INGRESOS_X_ARRENDAMIENTOS \
                 = reporte.ANEXO_A_CASILLA_23_IXVAD = reporte.ANEXO_A_CASILLA_24_OTROS_INGRESOS = 0
+            reporte.ANEXO_A_CASILLA_36_PCXOR_NORMA0205 = 0
 
             for sale in reporte.sale_report:
 
@@ -234,6 +235,10 @@ class DgiiReport(models.Model):
                 else:
 
                     if int(report_month) == int(ncf_month) and report_year == ncf_year: # this validation is to avoid add amounts of invoices of previous months
+
+                        '''
+                            The invoice is for the current period.
+                        '''
 
                         reporte.SALE_TOTAL_MONTO_FACTURADO += sale.MONTO_FACTURADO
                         reporte.SALE_ITBIS_TOTAL += sale.ITBIS_FACTURADO
@@ -263,7 +268,13 @@ class DgiiReport(models.Model):
                         elif sale.TIPO_DE_INGRESO == 6:
                             reporte.ANEXO_A_CASILLA_24_OTROS_INGRESOS += sale.MONTO_FACTURADO
 
+                        reporte.ANEXO_A_CASILLA_36_PCXOR_NORMA0205 += sale.ITBIS_RETENIDO_POR_TERCEROS
+
                     else:
+
+                        '''
+                            Invoice of previous period.
+                        '''
 
                         summary_dict[sale.invoice_id.sale_fiscal_type]["previous_months_count"] += 1
                         summary_dict[sale.invoice_id.sale_fiscal_type]["previous_months_amount"] += sale.MONTO_FACTURADO
@@ -300,6 +311,7 @@ class DgiiReport(models.Model):
             reporte.ANEXO_A_CASILLA_25_TOTAL_X_TIPO_INGRESO = reporte.ANEXO_A_CASILLA_19_INGRESOS_X_OPERACIONES + reporte.ANEXO_A_CASILLA_20_INGRESOS_FINANCIEROS \
                 + reporte.ANEXO_A_CASILLA_21_INGRESOS_EXTRAORDINARIOS + reporte.ANEXO_A_CASILLA_22_INGRESOS_X_ARRENDAMIENTOS \
                 + reporte.ANEXO_A_CASILLA_23_IXVAD + reporte.ANEXO_A_CASILLA_24_OTROS_INGRESOS
+            reporte.ANEXO_A_CASILLA_40_TOTAL_PAGOS_COMPUTABLES_RETENCIONES = reporte.ANEXO_A_CASILLA_36_PCXOR_NORMA0205
 
 
     @api.multi
@@ -1753,6 +1765,8 @@ class DgiiReport(models.Model):
     ANEXO_A_CASILLA_23_IXVAD = fields.Float(compute=_sale_report_totals)
     ANEXO_A_CASILLA_24_OTROS_INGRESOS = fields.Float(compute=_sale_report_totals)
     ANEXO_A_CASILLA_25_TOTAL_X_TIPO_INGRESO = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_36_PCXOR_NORMA0205 = fields.Float(compute=_sale_report_totals)
+    ANEXO_A_CASILLA_40_TOTAL_PAGOS_COMPUTABLES_RETENCIONES = fields.Float(compute=_sale_report_totals)
 
 
 
