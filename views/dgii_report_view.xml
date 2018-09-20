@@ -617,6 +617,35 @@
                                     </table>
                                 </group>
 
+                                <group style="width: 100%"><h2>IT-1: COLOCAR LOS SIGUIENTES VALORES EN LA CASILLA INDICADA</h2></group>
+                                <br />
+                                <group style="width: 100%">
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <tr>
+                                            <th colspan="2">II. INGRESOS POR OPERACIONES</th>
+                                            <th class="text-center">MONTO</th>
+                                        </tr>
+                                        <tr>
+                                            <td>1</td>
+                                            <td>TOTAL DE OPERACIONES DEL PERIODO (Proviene de la casilla 10 del Anexo A)</td>
+                                            <td class="text-center"><field name="IT1_CASILLA_1"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="3">II.B GRAVADAS</th>
+                                        </tr>
+                                        <tr>
+                                            <th>8</th>
+                                            <th>TOTAL INGRESOS POR OPERACIONES GRAVADAS (Restar casillas 1-7)</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_8"/></td>
+                                        </tr>                                                                                
+                                        <tr class="info">
+                                            <th>?</th>
+                                            <th>?</th>
+                                            <th class="text-center">?</th>
+                                        </tr>
+                                    </table>
+                                </group>
+
                             </group>
                         </group>
 

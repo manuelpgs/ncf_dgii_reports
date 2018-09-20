@@ -313,6 +313,10 @@ class DgiiReport(models.Model):
                 + reporte.ANEXO_A_CASILLA_23_IXVAD + reporte.ANEXO_A_CASILLA_24_OTROS_INGRESOS
             reporte.ANEXO_A_CASILLA_40_TOTAL_PAGOS_COMPUTABLES_RETENCIONES = reporte.ANEXO_A_CASILLA_36_PCXOR_NORMA0205
 
+            #IT1 (assignation)
+            reporte.IT1_CASILLA_1 = reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
+            reporte.IT1_CASILLA_8 = reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
+
 
     @api.multi
     @api.depends("purchase_report", "sale_report")
@@ -1768,7 +1772,9 @@ class DgiiReport(models.Model):
     ANEXO_A_CASILLA_36_PCXOR_NORMA0205 = fields.Float(compute=_sale_report_totals)
     ANEXO_A_CASILLA_40_TOTAL_PAGOS_COMPUTABLES_RETENCIONES = fields.Float(compute=_sale_report_totals)
 
-
+    # IT1 (fields)
+    IT1_CASILLA_1 = fields.Float(compute=_sale_report_totals)
+    IT1_CASILLA_8 = fields.Float(compute=_sale_report_totals)
 
 class DgiiReportPurchaseLine(models.Model):
 
