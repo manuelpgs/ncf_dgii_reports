@@ -160,6 +160,9 @@ class DgiiReport(models.Model):
             rec.ITBIS_TOTAL_PAYMENT = rec.ITBIS_TOTAL - rec.ITBIS_TOTAL_NC
             rec.TOTAL_MONTO_PAYMENT = rec.TOTAL_MONTO_FACTURADO - rec.TOTAL_MONTO_NC
             rec.ITBIS_POR_ADELANTAR = rec.ITBIS_TOTAL - rec.ITBIS_LLEVADO_ALCOSTO
+            rec.IT1_CASILLA_20 = rec.ITBIS_FACTURADO_BIENES # This amount is substraying the ITBIS in NC
+            rec.IT1_CASILLA_21 = rec.ITBIS_FACTURADO_SERVICIOS # This amount is substraying the ITBIS in NC
+            rec.IT1_CASILLA_23 = rec.ITBIS_TOTAL_PAYMENT # This amount is substraying the ITBIS in NC
 
             rec.pcount_01 = summary_dict["01"]["count"]
             rec.pcount_02 = summary_dict["02"]["count"]
@@ -316,6 +319,9 @@ class DgiiReport(models.Model):
             #IT1 (assignation)
             reporte.IT1_CASILLA_1 = reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
             reporte.IT1_CASILLA_8 = reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
+            reporte.IT1_CASILLA_9 = reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
+            reporte.IT1_CASILLA_14 = (reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES * 18) / 100
+            reporte.IT1_CASILLA_19 = reporte.IT1_CASILLA_14
 
 
     @api.multi
@@ -1775,6 +1781,12 @@ class DgiiReport(models.Model):
     # IT1 (fields)
     IT1_CASILLA_1 = fields.Float(compute=_sale_report_totals)
     IT1_CASILLA_8 = fields.Float(compute=_sale_report_totals)
+    IT1_CASILLA_9 = fields.Float(compute=_sale_report_totals)
+    IT1_CASILLA_14 = fields.Float(compute=_sale_report_totals)
+    IT1_CASILLA_19 = fields.Float(compute=_sale_report_totals)
+    IT1_CASILLA_20 = fields.Float(compute=_purchase_report_totals)
+    IT1_CASILLA_21 = fields.Float(compute=_purchase_report_totals)
+    IT1_CASILLA_23 = fields.Float(compute=_purchase_report_totals)
 
 class DgiiReportPurchaseLine(models.Model):
 
