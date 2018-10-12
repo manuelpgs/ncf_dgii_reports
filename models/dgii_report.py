@@ -163,6 +163,7 @@ class DgiiReport(models.Model):
             rec.IT1_CASILLA_20 = rec.ITBIS_FACTURADO_BIENES # This amount is substraying the ITBIS in NC
             rec.IT1_CASILLA_21 = rec.ITBIS_FACTURADO_SERVICIOS # This amount is substraying the ITBIS in NC
             rec.IT1_CASILLA_23 = rec.ITBIS_TOTAL_PAYMENT # This amount is substraying the ITBIS in NC
+            rec.IT1_CASILLA_25 = rec.IT1_CASILLA_23
 
             rec.pcount_01 = summary_dict["01"]["count"]
             rec.pcount_02 = summary_dict["02"]["count"]
@@ -249,7 +250,7 @@ class DgiiReport(models.Model):
 
                         summary_dict[sale.invoice_id.sale_fiscal_type]["current_month_count"] += 1
                         summary_dict[sale.invoice_id.sale_fiscal_type]["current_month_amount"] += sale.MONTO_FACTURADO
-                        
+
                         reporte.ANEXO_A_CASILLA_11_EFECTIVO += sale.MONTOS_PAGADOS_EFECTIVO
                         reporte.ANEXO_A_CASILLA_12_CHEQUE_TRANSFERENCIA += sale.MONTOS_PAGADOS_BANCO
                         reporte.ANEXO_A_CASILLA_13_TARJETA_DEBITO_CREDITO += sale.MONTOS_PAGADOS_TARJETAS
@@ -322,6 +323,12 @@ class DgiiReport(models.Model):
             reporte.IT1_CASILLA_9 = reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
             reporte.IT1_CASILLA_14 = (reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES * 18) / 100
             reporte.IT1_CASILLA_19 = reporte.IT1_CASILLA_14
+
+
+    @api.multi
+    @api.depends("purchase_report", "sale_report")
+    def _it1_report(self):
+        self.IT1_CASILLA_26 = self.IT1_CASILLA_19 - self.IT1_CASILLA_25
 
 
     @api.multi
@@ -1787,6 +1794,8 @@ class DgiiReport(models.Model):
     IT1_CASILLA_20 = fields.Float(compute=_purchase_report_totals)
     IT1_CASILLA_21 = fields.Float(compute=_purchase_report_totals)
     IT1_CASILLA_23 = fields.Float(compute=_purchase_report_totals)
+    IT1_CASILLA_25 = fields.Float(compute=_purchase_report_totals)
+    IT1_CASILLA_26 = fields.Float(compute=_it1_report)
 
 class DgiiReportPurchaseLine(models.Model):
 

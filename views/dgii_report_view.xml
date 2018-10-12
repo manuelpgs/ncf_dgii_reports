@@ -671,6 +671,21 @@
                                             <th>TOTAL ITBIS PAGADO (Sumar casillas 20+21+22)</th>
                                             <td class="text-center"><field name="IT1_CASILLA_23"/></td>
                                         </tr>
+                                        <tr>
+                                            <td>24</td>
+                                            <td>ITBIS NO ADMITIDO APLICACIÓN PROPORCIONALIDAD (Proviene de la casilla 33 del Anexo A)</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <th>25</th>
+                                            <th>ITBIS PAGADO NETO PROPORCIONALIDAD (Restar casillas 23-24)</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_25"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>26</th>
+                                            <th>IMPUESTO A PAGAR (Si el valor de las casillas 19-25 es Positivo)</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_26"/></td>
+                                        </tr>
                                         <tr class="info">
                                             <th>?</th>
                                             <th>?</th>
