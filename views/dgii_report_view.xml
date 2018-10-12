@@ -667,6 +667,11 @@
                                             <td class="text-center"><field name="IT1_CASILLA_21"/></td>
                                         </tr>
                                         <tr>
+                                            <td>22</td>
+                                            <td>ITBIS PAGADO EN IMPORTACIONES (Proviene de la casilla 28 del Anexo A)</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
                                             <th>23</th>
                                             <th>TOTAL ITBIS PAGADO (Sumar casillas 20+21+22)</th>
                                             <td class="text-center"><field name="IT1_CASILLA_23"/></td>
@@ -685,6 +690,46 @@
                                             <th>26</th>
                                             <th>IMPUESTO A PAGAR (Si el valor de las casillas 19-25 es Positivo)</th>
                                             <td class="text-center"><field name="IT1_CASILLA_26"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>27</th>
+                                            <th>SALDO A FAVOR (Si el valor de las casillas 19-25 es Negativo)</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_27"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>28</th>
+                                            <th>SALDOS COMPENSABLES AUTORIZADOS (Otros Impuestos) Y/O REEMBOLSOS</th>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>29</td>
+                                            <td>SALDO A FAVOR ANTERIOR</td>
+                                            <td class="text-center"><field name="IT1_CASILLA_29"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>30</td>
+                                            <td>TOTAL PAGOS COMPUTABLES POR RETENCIONES (Proviene de la casilla 40 del Anexo A)</td>
+                                            <td class="text-center"><field name="IT1_CASILLA_30"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>31</td>
+                                            <td>OTROS PAGOS COMPUTABLES A CUENTA</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <th>32</th>
+                                            <th>COMPENSACIONES Y/O REEMBOLSOS AUTORIZADOS</th>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <th>33</th>
+                                            <th>DIFERENCIA A PAGAR (Si el valor de las casillas 26-28-29-30-31-32 es Positivo)</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_33"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>34</th>
+                                            <th>NUEVO SALDO A FAVOR (Si el valor de las casillas (26-28-29-30-31-32 es Negativo) ó (27+28+29+30+31+32))</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_34"/></td>
                                         </tr>
                                         <tr class="info">
                                             <th>?</th>

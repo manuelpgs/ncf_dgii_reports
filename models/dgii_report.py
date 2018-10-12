@@ -160,10 +160,6 @@ class DgiiReport(models.Model):
             rec.ITBIS_TOTAL_PAYMENT = rec.ITBIS_TOTAL - rec.ITBIS_TOTAL_NC
             rec.TOTAL_MONTO_PAYMENT = rec.TOTAL_MONTO_FACTURADO - rec.TOTAL_MONTO_NC
             rec.ITBIS_POR_ADELANTAR = rec.ITBIS_TOTAL - rec.ITBIS_LLEVADO_ALCOSTO
-            rec.IT1_CASILLA_20 = rec.ITBIS_FACTURADO_BIENES # This amount is substraying the ITBIS in NC
-            rec.IT1_CASILLA_21 = rec.ITBIS_FACTURADO_SERVICIOS # This amount is substraying the ITBIS in NC
-            rec.IT1_CASILLA_23 = rec.ITBIS_TOTAL_PAYMENT # This amount is substraying the ITBIS in NC
-            rec.IT1_CASILLA_25 = rec.IT1_CASILLA_23
 
             rec.pcount_01 = summary_dict["01"]["count"]
             rec.pcount_02 = summary_dict["02"]["count"]
@@ -317,18 +313,31 @@ class DgiiReport(models.Model):
                 + reporte.ANEXO_A_CASILLA_23_IXVAD + reporte.ANEXO_A_CASILLA_24_OTROS_INGRESOS
             reporte.ANEXO_A_CASILLA_40_TOTAL_PAGOS_COMPUTABLES_RETENCIONES = reporte.ANEXO_A_CASILLA_36_PCXOR_NORMA0205
 
-            #IT1 (assignation)
-            reporte.IT1_CASILLA_1 = reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
-            reporte.IT1_CASILLA_8 = reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
-            reporte.IT1_CASILLA_9 = reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
-            reporte.IT1_CASILLA_14 = (reporte.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES * 18) / 100
-            reporte.IT1_CASILLA_19 = reporte.IT1_CASILLA_14
-
 
     @api.multi
     @api.depends("purchase_report", "sale_report")
     def _it1_report(self):
+        self.IT1_CASILLA_1 = self.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
+        self.IT1_CASILLA_8 = self.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
+        self.IT1_CASILLA_9 = self.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES
+        self.IT1_CASILLA_14 = (self.ANEXO_A_CASILLA_10_TOTAL_OPERACIONES * 18) / 100
+        self.IT1_CASILLA_19 = self.IT1_CASILLA_14
+        self.IT1_CASILLA_20 = self.ITBIS_FACTURADO_BIENES # This amount is substraying the ITBIS in NC
+        self.IT1_CASILLA_21 = self.ITBIS_FACTURADO_SERVICIOS # This amount is substraying the ITBIS in NC
+        self.IT1_CASILLA_23 = self.ITBIS_TOTAL_PAYMENT # This amount is substraying the ITBIS in NC
+        self.IT1_CASILLA_25 = self.IT1_CASILLA_23        
         self.IT1_CASILLA_26 = self.IT1_CASILLA_19 - self.IT1_CASILLA_25
+        self.IT1_CASILLA_27 = abs(self.IT1_CASILLA_26) if self.IT1_CASILLA_26 < 0 else 0
+        self.IT1_CASILLA_29 = self.positive_balance
+        self.IT1_CASILLA_30 = self.ANEXO_A_CASILLA_40_TOTAL_PAGOS_COMPUTABLES_RETENCIONES
+
+        operation = float(self.IT1_CASILLA_26) - (float(self.IT1_CASILLA_29) + float(self.IT1_CASILLA_30))
+        self.IT1_CASILLA_33 = operation if operation > 0 else 0
+        self.IT1_CASILLA_34 = float(self.IT1_CASILLA_27) + float(self.IT1_CASILLA_29) + float(self.IT1_CASILLA_30) if operation < 0 else 0
+
+        if self.IT1_CASILLA_27 > 0: # New positive balance
+            _logger.warning('New positive balance in IT1: %s' % self.IT1_CASILLA_27)
+
 
 
     @api.multi
@@ -1786,16 +1795,21 @@ class DgiiReport(models.Model):
     ANEXO_A_CASILLA_40_TOTAL_PAGOS_COMPUTABLES_RETENCIONES = fields.Float(compute=_sale_report_totals)
 
     # IT1 (fields)
-    IT1_CASILLA_1 = fields.Float(compute=_sale_report_totals)
-    IT1_CASILLA_8 = fields.Float(compute=_sale_report_totals)
-    IT1_CASILLA_9 = fields.Float(compute=_sale_report_totals)
-    IT1_CASILLA_14 = fields.Float(compute=_sale_report_totals)
-    IT1_CASILLA_19 = fields.Float(compute=_sale_report_totals)
-    IT1_CASILLA_20 = fields.Float(compute=_purchase_report_totals)
-    IT1_CASILLA_21 = fields.Float(compute=_purchase_report_totals)
-    IT1_CASILLA_23 = fields.Float(compute=_purchase_report_totals)
-    IT1_CASILLA_25 = fields.Float(compute=_purchase_report_totals)
+    IT1_CASILLA_1 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_8 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_9 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_14 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_19 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_20 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_21 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_23 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_25 = fields.Float(compute=_it1_report)
     IT1_CASILLA_26 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_27 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_29 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_30 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_33 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_34 = fields.Float(compute=_it1_report)
 
 class DgiiReportPurchaseLine(models.Model):
 
