@@ -13,7 +13,15 @@ En cada producto, se debe configurar correctamente el "Tipo de Producto" para po
 ## CONFIGURAR LA(S) CUENTA(S) QUE ES(SON) USADA(S) PARA EL ITBIS RETENIDO EN VENTAS (REPORTE 607) SEGÚN LA NORMA 02-05
 En el catálogo de cuentas hemos colocado un nuevo campo opcional para escoger, este se llama: **Tipo de Impuesto en Venta** y por lo general las empresas que tiene RNC solo deberán escoger allí la primera opción **ITBIS Retenido Persona Jurídica (N 02-05)** y cuando la cuenta sea *ITBIS Retenido Persona Jurídica (N 02-05)* que por defecto en el catálogo de cuentas dominicano en ODOO 10 es la *no.21030201* y tiene el ID 100.
 
-Con esta acción podemos obtener las columnas *7 - FECHA DE RETENCIÓN* y *10 - ITBIS RETENIDO POR TERCEROS*.
+Con esta acción podemos obtener las columnas *7 - FECHA DE RETENCIÓN* y *10 - ITBIS RETENIDO POR TERCEROS* del reporte 607.
+
+
+## REGISTRAR CORRECTAMENTE LAS FACTURAS DE PROVEEDORES QUE NOS DAN UN SERVICIO Y AL CUAL LE HACEMOS RETENCIÓN DE 30% ITBIS (REPORTE 606) SEGÚN LA NORMA 02-05
+Al registrar los impuestos de este tipo de factura, se debe seleccionar el **18% de ITBIS compra (servicios)** y además como le vamos a hacer retención de 30% ITBIS según la norma 02-05, debemos seleccionar también como impuesto **Retención ITBIS 30% a Persona Jurídica (Servicios)** y que por defecto ese impuesto viene atado a la cuenta contable **21030201 - ITBIS Retenido Persona Jurídica (N 02-05)**, además recordar que ese impuesto se debe configurar como **ITBIS retenido**
+
+Con esta acción podemos obtener la columna *12 - ITBIS RETENIDO* del reporte 606.
+
+*Nota: del mismo modo, otro impuesto a escoger podría ser el Retención ISR 10% a Personas Físicas en los casos que aplique* 
 
 
 ### ESTADO ACTUAL  

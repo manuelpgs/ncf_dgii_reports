@@ -24,6 +24,7 @@
                                     <field name="company_id" readonly="1"/>
                                     <field name="name" widget="mask" data-inputmask="'mask': '99/9999'"/>
                                     <field name="positive_balance"/>
+                                    <field name="penalties"/>
                                 </group>
 
                                 <!-- <group style="width: 100% display: none;">
@@ -644,7 +645,8 @@
                                             <td class="text-center"><field name="IT1_CASILLA_9"/></td>
                                         </tr>
                                         <tr>
-                                            <th colspan="3">III. LIQUIDACIÓN</th>
+                                            <th colspan="2">III. LIQUIDACIÓN</th>
+                                            <th class="text-center">MONTO</th>
                                         </tr>
                                         <tr>
                                             <td>14</td>
@@ -730,6 +732,25 @@
                                             <th>34</th>
                                             <th>NUEVO SALDO A FAVOR (Si el valor de las casillas (26-28-29-30-31-32 es Negativo) ó (27+28+29+30+31+32))</th>
                                             <td class="text-center"><field name="IT1_CASILLA_34"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="2">IV. PENALIDADES</th>
+                                            <th class="text-center">MONTO</th>
+                                        </tr>
+                                        <tr>
+                                            <td>35</td>
+                                            <td>RECARGOS</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>36</td>
+                                            <td>INTERÉS INDEMNIZATORIO</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>37</td>
+                                            <td>SANCIONES</td>
+                                            <td class="text-center"><field name="IT1_CASILLA_37"/></td>
                                         </tr>
                                         <tr class="info">
                                             <th>?</th>

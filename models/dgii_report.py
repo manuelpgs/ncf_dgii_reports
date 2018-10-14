@@ -333,10 +333,18 @@ class DgiiReport(models.Model):
 
         operation = float(self.IT1_CASILLA_26) - (float(self.IT1_CASILLA_29) + float(self.IT1_CASILLA_30))
         self.IT1_CASILLA_33 = operation if operation > 0 else 0
-        self.IT1_CASILLA_34 = float(self.IT1_CASILLA_27) + float(self.IT1_CASILLA_29) + float(self.IT1_CASILLA_30) if operation < 0 else 0
+        
+        '''
+            self.IT1_CASILLA_26 comes negative whether self.IT1_CASILLA_25 is greater than self.IT1_CASILLA_19,
+            so we don't need add self.IT1_CASILLA_27 to the addition below (it is the negative value of self.IT1_CASILLA_26).
+        '''
+        self.IT1_CASILLA_34 = abs(float(self.IT1_CASILLA_26) - (float(self.IT1_CASILLA_29) + float(self.IT1_CASILLA_30))) if operation < 0 else 0
 
-        if self.IT1_CASILLA_27 > 0: # New positive balance
-            _logger.warning('New positive balance in IT1: %s' % self.IT1_CASILLA_27)
+        if self.IT1_CASILLA_34 > 0: # New positive balance
+            _logger.warning('New positive balance in IT1: %s' % self.IT1_CASILLA_34)
+            self.positive_balance_current_period = self.IT1_CASILLA_34
+
+        self.IT1_CASILLA_37 = self.penalties
 
 
 
@@ -1663,6 +1671,8 @@ class DgiiReport(models.Model):
                                  default=lambda self: self.env.user.company_id)
     name = fields.Char(string=u"PERÍODO MES/AÑO", required=True, unique=True, index=True)
     positive_balance = fields.Float(u"SALDO A FAVOR ANTERIOR", required=True)
+    positive_balance_current_period = fields.Float(u"NUEVO SALDO A FAVOR", required=False) # the idea with this field is to be set as "positive_balance" in the report of the next month
+    penalties = fields.Float(u"SANCIONES (CASILLA 37 DEL IT1)", required=False)
 
     it_filename = fields.Char()
     it_binary = fields.Binary(string=u"Archivo excel IT-1")
@@ -1810,6 +1820,7 @@ class DgiiReport(models.Model):
     IT1_CASILLA_30 = fields.Float(compute=_it1_report)
     IT1_CASILLA_33 = fields.Float(compute=_it1_report)
     IT1_CASILLA_34 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_37 = fields.Float(compute=_it1_report)
 
 class DgiiReportPurchaseLine(models.Model):
 
