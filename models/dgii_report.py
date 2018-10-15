@@ -110,6 +110,7 @@ class DgiiReport(models.Model):
             rec.IMPUESTO_ISC = 0
             rec.IMPUESTOS_OTROS = 0
             rec.MONTO_PROPINA_LEGAL = 0
+            rec.SUBTOTAL_SUJECTO_RETENCION_PERSONA_FISICA = 0
 
             for purchase in rec.purchase_report:
 
@@ -142,9 +143,9 @@ class DgiiReport(models.Model):
                         rec.ITBIS_TOTAL += purchase.ITBIS_FACTURADO_TOTAL
                         rec.ITBIS_FACTURADO_SERVICIOS += purchase.ITBIS_FACTURADO_SERVICIOS
                         rec.ITBIS_FACTURADO_BIENES += purchase.ITBIS_FACTURADO_BIENES
-                        rec.ITBIS_RETENIDO += purchase.ITBIS_RETENIDO
-                        rec.RETENCION_RENTA += purchase.RETENCION_RENTA
 
+                    rec.ITBIS_RETENIDO += purchase.ITBIS_RETENIDO
+                    rec.RETENCION_RENTA += purchase.RETENCION_RENTA
                     rec.ITBIS_SUJETO_PROPORCIONALIDAD += purchase.ITBIS_SUJETO_PROPORCIONALIDAD
                     rec.ITBIS_LLEVADO_ALCOSTO += purchase.ITBIS_LLEVADO_ALCOSTO
                     rec.ITBIS_POR_ADELANTAR += purchase.ITBIS_POR_ADELANTAR
@@ -153,6 +154,11 @@ class DgiiReport(models.Model):
                     rec.IMPUESTO_ISC += purchase.IMPUESTO_ISC
                     rec.IMPUESTOS_OTROS += purchase.IMPUESTOS_OTROS
                     rec.MONTO_PROPINA_LEGAL += purchase.MONTO_PROPINA_LEGAL
+
+                    RNC_CEDULA, TIPO_IDENTIFICACION = self.get_identification_info(purchase.invoice_id.partner_id.vat)
+
+                    if TIPO_IDENTIFICACION == '2' and  rec.ITBIS_RETENIDO > 0: # TIPO_IDENTIFICACION 2 is cédula
+                        rec.SUBTOTAL_SUJECTO_RETENCION_PERSONA_FISICA += purchase.MONTO_FACTURADO
 
                 summary_dict[purchase.invoice_id.expense_type]["count"] += 1
                 summary_dict[purchase.invoice_id.expense_type]["amount"] += purchase.MONTO_FACTURADO
@@ -325,7 +331,7 @@ class DgiiReport(models.Model):
         self.IT1_CASILLA_20 = self.ITBIS_FACTURADO_BIENES # This amount is substraying the ITBIS in NC
         self.IT1_CASILLA_21 = self.ITBIS_FACTURADO_SERVICIOS # This amount is substraying the ITBIS in NC
         self.IT1_CASILLA_23 = self.ITBIS_TOTAL_PAYMENT # This amount is substraying the ITBIS in NC
-        self.IT1_CASILLA_25 = self.IT1_CASILLA_23        
+        self.IT1_CASILLA_25 = self.IT1_CASILLA_23
         self.IT1_CASILLA_26 = self.IT1_CASILLA_19 - self.IT1_CASILLA_25
         self.IT1_CASILLA_27 = abs(self.IT1_CASILLA_26) if self.IT1_CASILLA_26 < 0 else 0
         self.IT1_CASILLA_29 = self.positive_balance
@@ -333,7 +339,7 @@ class DgiiReport(models.Model):
 
         operation = float(self.IT1_CASILLA_26) - (float(self.IT1_CASILLA_29) + float(self.IT1_CASILLA_30))
         self.IT1_CASILLA_33 = operation if operation > 0 else 0
-        
+
         '''
             self.IT1_CASILLA_26 comes negative whether self.IT1_CASILLA_25 is greater than self.IT1_CASILLA_19,
             so we don't need add self.IT1_CASILLA_27 to the addition below (it is the negative value of self.IT1_CASILLA_26).
@@ -346,6 +352,10 @@ class DgiiReport(models.Model):
 
         self.IT1_CASILLA_37 = self.penalties
 
+        totalToPayCasilla38 = float(self.IT1_CASILLA_33) + float(self.IT1_CASILLA_37)
+        self.IT1_CASILLA_38 = totalToPayCasilla38 if totalToPayCasilla38 > 0 else 0
+
+        self.IT1_CASILLA_39 = self.SUBTOTAL_SUJECTO_RETENCION_PERSONA_FISICA
 
 
     @api.multi
@@ -497,7 +507,7 @@ class DgiiReport(models.Model):
         This method is only called when the Invoice is paid.
         This method is used for 606 report.  There is other
         method similar to this but for 607 report, its name is:
-        get_607_itbis_retenido_and_date().  We decide to keep these
+        get_607_itbis_retenido_and_date().  We decided to keep these
         two method separate for better understand and convenience.
     '''
     def get_payment_date_and_retention_data(self, invoice):
@@ -602,7 +612,7 @@ class DgiiReport(models.Model):
             self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice.id)
             payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
 
-            if invoice.number.startswith('B04') or invoice.number[9:11] == '04': # This is a Credit Note
+            if invoice.number.startswith('B04') or (invoice.number[9:11] == '04' and len(invoice.number) > 11): # This is a Credit Note, the len validation if to avoid false positive with invoice like 'B0100000004'
                 '''
                 #TODO validate with an accountant if Credit Note require Payment Method.
                 By now, one accoutant (Henry) said that he think could be the same payment method as original invoice or could be leave empty. (Aug 14th, 2018).
@@ -1699,6 +1709,7 @@ class DgiiReport(models.Model):
 
     ITBIS_RETENIDO = fields.Float(u"ITBIS Retenido", compute=_purchase_report_totals)
     RETENCION_RENTA = fields.Float(u"Retención Renta", compute=_purchase_report_totals)
+    SUBTOTAL_SUJECTO_RETENCION_PERSONA_FISICA = fields.Float(u"Subtotal Servicios Sujetos a Retención Personas Físicas", compute=_purchase_report_totals)
 
     purchase_report = fields.One2many(u"dgii.report.purchase.line", "dgii_report_id")
     purchase_filename = fields.Char()
@@ -1821,6 +1832,8 @@ class DgiiReport(models.Model):
     IT1_CASILLA_33 = fields.Float(compute=_it1_report)
     IT1_CASILLA_34 = fields.Float(compute=_it1_report)
     IT1_CASILLA_37 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_38 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_39 = fields.Float(compute=_it1_report)
 
 class DgiiReportPurchaseLine(models.Model):
 

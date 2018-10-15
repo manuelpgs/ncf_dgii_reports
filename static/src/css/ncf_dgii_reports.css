@@ -5,3 +5,11 @@ div.o_group { width: auto !important; margin: 0 auto !important; display: block 
     background-color: #222;
     color: #fff;
 }
+
+.report_header_custom {  }
+.report_header_custom tbody {  }
+.report_header_custom tr { border-bottom: 1px solid lightgrey; }
+.report_header_custom tr td:first-child { width: 40% !important; min-width: 300px !important; }
+.report_header_custom tr td:nth-child(2) {  }
+.report_header_custom tr td:nth-child(2) a, .report_header_custom tr td:nth-child(2) span { padding-left: 15px !important; }
+.report_header_custom td { padding: 8px 20px !important }

@@ -20,7 +20,7 @@
                     </header>
                     <sheet string="Declaraciones" style="width: 100%;">
                         <group style="width: 100%">
-                                <group style="width: 100%">
+                                <group class="report_header_custom">
                                     <field name="company_id" readonly="1"/>
                                     <field name="name" widget="mask" data-inputmask="'mask': '99/9999'"/>
                                     <field name="positive_balance"/>
@@ -375,7 +375,7 @@
                                     </table>
                                 </group>
 
-                                <div class="separator"></div>
+                                <!-- <div class="separator"></div>
                                 <group style="width: 100%"><h2>Reporte 608</h2></group>
                                 <group style="width: 100%">
                                     <table class="table table-striped table-bordered table-condensed">
@@ -395,9 +395,9 @@
                                             </td>
                                         </tr>
                                     </table>
-                                </group>
+                                </group> -->
 
-                                <group style="width: 100%"><h2>Reporte 609</h2></group>
+                                <!-- <group style="width: 100%"><h2>Reporte 609</h2></group>
                                 <div class="separator"></div>
                                 <group style="width: 100%">
                                     <table class="table table-striped table-bordered table-condensed">
@@ -423,7 +423,7 @@
                                             </td>
                                         </tr>
                                     </table>
-                                </group>
+                                </group> -->
 
                                 <group style="width: 100%"><h2>ANEXO A: COLOCAR LOS SIGUIENTES VALORES EN LA CASILLA INDICADA</h2></group>
                                 <br />
@@ -622,7 +622,7 @@
                                 <br />
                                 <group style="width: 100%">
                                     <table class="table table-striped table-bordered table-condensed">
-                                        <tr>
+                                        <tr class="success">
                                             <th colspan="2">II. INGRESOS POR OPERACIONES</th>
                                             <th class="text-center">MONTO</th>
                                         </tr>
@@ -644,7 +644,7 @@
                                             <td>OPERACIONES GRAVADAS AL 18%</td>
                                             <td class="text-center"><field name="IT1_CASILLA_9"/></td>
                                         </tr>
-                                        <tr>
+                                        <tr class="success">
                                             <th colspan="2">III. LIQUIDACIÓN</th>
                                             <th class="text-center">MONTO</th>
                                         </tr>
@@ -723,7 +723,7 @@
                                             <th>COMPENSACIONES Y/O REEMBOLSOS AUTORIZADOS</th>
                                             <td class="text-center">N/A</td>
                                         </tr>
-                                        <tr>
+                                        <tr class="warning">
                                             <th>33</th>
                                             <th>DIFERENCIA A PAGAR (Si el valor de las casillas 26-28-29-30-31-32 es Positivo)</th>
                                             <td class="text-center"><field name="IT1_CASILLA_33"/></td>
@@ -733,7 +733,7 @@
                                             <th>NUEVO SALDO A FAVOR (Si el valor de las casillas (26-28-29-30-31-32 es Negativo) ó (27+28+29+30+31+32))</th>
                                             <td class="text-center"><field name="IT1_CASILLA_34"/></td>
                                         </tr>
-                                        <tr>
+                                        <tr class="success">
                                             <th colspan="2">IV. PENALIDADES</th>
                                             <th class="text-center">MONTO</th>
                                         </tr>
@@ -752,10 +752,23 @@
                                             <td>SANCIONES</td>
                                             <td class="text-center"><field name="IT1_CASILLA_37"/></td>
                                         </tr>
-                                        <tr class="info">
-                                            <th>?</th>
-                                            <th>?</th>
-                                            <th class="text-center">?</th>
+                                        <tr class="success">
+                                            <th colspan="2">V. MONTO A PAGAR</th>
+                                            <th class="text-center">MONTO</th>
+                                        </tr>
+                                        <tr>
+                                            <th>38</th>
+                                            <th>TOTAL A PAGAR (Sumar casillas 33+35+36+37)</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_38"/></td>
+                                        </tr>
+                                        <tr class="success">
+                                            <th colspan="2">A. ITBIS RETENIDO / ITBIS PERCIBIDO</th>
+                                            <th class="text-center">MONTO</th>
+                                        </tr>
+                                        <tr>
+                                            <td>39</td>
+                                            <td>SERVICIOS SUJETOS A RETENCIÓN PERSONAS FÍSICAS</td>
+                                            <td class="text-center"><field name="IT1_CASILLA_39"/></td>
                                         </tr>
                                     </table>
                                 </group>
@@ -827,7 +840,7 @@
                                     </tree>
                                 </field>
                             </page>
-                            <page string="608">
+                            <!-- <page string="608">
                                 <field name="cancel_report">
                                     <tree>
                                         <field name="LINE"/>
@@ -837,8 +850,8 @@
                                         <field name="invoice_id"/>
                                     </tree>
                                 </field>
-                            </page>
-                            <page string="609">
+                            </page> -->
+                            <!-- <page string="609">
                                 <field name="exterior_report">
                                     <tree>
                                         <field name="LINE"/>
@@ -849,7 +862,7 @@
                                         <field name="MONTO_FACTURADO"/>
                                     </tree>
                                 </field>
-                            </page>
+                            </page> -->
                         </notebook>
                         <widget type="opl"/>
                     </sheet>
