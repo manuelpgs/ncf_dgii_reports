@@ -111,6 +111,7 @@ class DgiiReport(models.Model):
             rec.IMPUESTOS_OTROS = 0
             rec.MONTO_PROPINA_LEGAL = 0
             rec.SUBTOTAL_SUJECTO_RETENCION_PERSONA_FISICA = 0
+            rec.SUBTOTAL_SERVICIOS_SUJETOS_RETENCION_SOCIEDADES_NORMA0205 = 0
 
             for purchase in rec.purchase_report:
 
@@ -157,8 +158,12 @@ class DgiiReport(models.Model):
 
                     RNC_CEDULA, TIPO_IDENTIFICACION = self.get_identification_info(purchase.invoice_id.partner_id.vat)
 
-                    if TIPO_IDENTIFICACION == '2' and  rec.ITBIS_RETENIDO > 0: # TIPO_IDENTIFICACION 2 is cédula
+                    if TIPO_IDENTIFICACION == '2' and purchase.ITBIS_RETENIDO > 0 : # TIPO_IDENTIFICACION 2 is Cédula
                         rec.SUBTOTAL_SUJECTO_RETENCION_PERSONA_FISICA += purchase.MONTO_FACTURADO
+
+                    if TIPO_IDENTIFICACION == '1' and purchase.ITBIS_RETENIDO > 0 : # TIPO_IDENTIFICACION 1 is RNC
+                        rec.SUBTOTAL_SERVICIOS_SUJETOS_RETENCION_SOCIEDADES_NORMA0205 += purchase.MONTO_FACTURADO
+                        _logger.warning("ITBIS RETENIDO: %s , NCF: %s , FECHA NCF: %s" % (purchase.ITBIS_RETENIDO, purchase.NUMERO_COMPROBANTE_FISCAL, purchase.FECHA_COMPROBANTE))
 
                 summary_dict[purchase.invoice_id.expense_type]["count"] += 1
                 summary_dict[purchase.invoice_id.expense_type]["amount"] += purchase.MONTO_FACTURADO
@@ -356,6 +361,22 @@ class DgiiReport(models.Model):
         self.IT1_CASILLA_38 = totalToPayCasilla38 if totalToPayCasilla38 > 0 else 0
 
         self.IT1_CASILLA_39 = self.SUBTOTAL_SUJECTO_RETENCION_PERSONA_FISICA
+        self.IT1_CASILLA_41 = self.IT1_CASILLA_39
+        self.IT1_CASILLA_43 = self.SUBTOTAL_SERVICIOS_SUJETOS_RETENCION_SOCIEDADES_NORMA0205
+        self.IT1_CASILLA_50 = (self.IT1_CASILLA_41 * 18) / 100
+        self.IT1_CASILLA_52 = ((self.IT1_CASILLA_43 * 18) / 100) * 0.30
+        self.IT1_CASILLA_60 = self.IT1_CASILLA_50 + self.IT1_CASILLA_52
+        self.IT1_CASILLA_61 = self.pagos_computables_cuenta
+
+        differenceToPay = self.IT1_CASILLA_60 - self.IT1_CASILLA_61
+        self.IT1_CASILLA_62 = differenceToPay if differenceToPay > 0 else 0
+        self.IT1_CASILLA_63 = abs(differenceToPay) if differenceToPay < 0 else 0
+        
+        self.IT1_CASILLA_66 = self.penalties_section_b
+        self.IT1_CASILLA_67 = self.IT1_CASILLA_62 + self.IT1_CASILLA_66
+        
+        totalGeneral = self.IT1_CASILLA_38 + self.IT1_CASILLA_67
+        self.IT1_CASILLA_68 = totalGeneral if totalGeneral > 0 else 0
 
 
     @api.multi
@@ -1683,6 +1704,8 @@ class DgiiReport(models.Model):
     positive_balance = fields.Float(u"SALDO A FAVOR ANTERIOR", required=True)
     positive_balance_current_period = fields.Float(u"NUEVO SALDO A FAVOR", required=False) # the idea with this field is to be set as "positive_balance" in the report of the next month
     penalties = fields.Float(u"SANCIONES (CASILLA 37 DEL IT1)", required=False)
+    pagos_computables_cuenta = fields.Float(u"PAGOS COMPUTABLES A CUENTA (CASILLA 61 DEL IT1)", required=False)
+    penalties_section_b = fields.Float(u"SANCIONES (CASILLA 66 DEL IT1)", required=False)
 
     it_filename = fields.Char()
     it_binary = fields.Binary(string=u"Archivo excel IT-1")
@@ -1710,6 +1733,7 @@ class DgiiReport(models.Model):
     ITBIS_RETENIDO = fields.Float(u"ITBIS Retenido", compute=_purchase_report_totals)
     RETENCION_RENTA = fields.Float(u"Retención Renta", compute=_purchase_report_totals)
     SUBTOTAL_SUJECTO_RETENCION_PERSONA_FISICA = fields.Float(u"Subtotal Servicios Sujetos a Retención Personas Físicas", compute=_purchase_report_totals)
+    SUBTOTAL_SERVICIOS_SUJETOS_RETENCION_SOCIEDADES_NORMA0205 = fields.Float(u"SERVICIOS SUJETOS A RETENCIÓN SOCIEDADES (Norma No. 02-05)", compute=_purchase_report_totals)
 
     purchase_report = fields.One2many(u"dgii.report.purchase.line", "dgii_report_id")
     purchase_filename = fields.Char()
@@ -1834,6 +1858,17 @@ class DgiiReport(models.Model):
     IT1_CASILLA_37 = fields.Float(compute=_it1_report)
     IT1_CASILLA_38 = fields.Float(compute=_it1_report)
     IT1_CASILLA_39 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_41 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_43 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_50 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_52 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_60 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_61 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_62 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_63 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_66 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_67 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_68 = fields.Float(compute=_it1_report)
 
 class DgiiReportPurchaseLine(models.Model):
 

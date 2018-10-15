@@ -25,6 +25,8 @@
                                     <field name="name" widget="mask" data-inputmask="'mask': '99/9999'"/>
                                     <field name="positive_balance"/>
                                     <field name="penalties"/>
+                                    <field name="pagos_computables_cuenta"/>
+                                    <field name="penalties_section_b"/>
                                 </group>
 
                                 <!-- <group style="width: 100% display: none;">
@@ -769,6 +771,92 @@
                                             <td>39</td>
                                             <td>SERVICIOS SUJETOS A RETENCIÓN PERSONAS FÍSICAS</td>
                                             <td class="text-center"><field name="IT1_CASILLA_39"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>40</td>
+                                            <td>SERVICIOS SUJETOS A RETENCIÓN ENTIDADES NO LUCRATIVAS</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <th>41</th>
+                                            <th>TOTAL SERVICIOS SUJETOS A RETENCIÓN A PERSONAS FÍSICAS Y ENTIDADES NO LUCRATIVAS</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_41"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>42</td>
+                                            <td>SERVICIOS SUJETOS A RETENCIÓN SOCIEDADES (Norma No. 07-09 y 01-11)</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>43</td>
+                                            <td>SERVICIOS SUJETOS A RETENCIÓN SOCIEDADES (Norma No. 02-05 y 07-07)</td>
+                                            <td title="Solo la Norma No. 02-05 está implementada aquí" class="text-center"><field name="IT1_CASILLA_43"/> *</td>
+                                        </tr>
+                                        <tr>
+                                            <td>50</td>
+                                            <td>ITBIS POR SERVICIOS SUJETOS A RETENCIÓN PERSONAS FÍSICAS Y ENTIDADES NO LUCRATIVAS (18% de la casilla 41)</td>
+                                            <td class="text-center"><field name="IT1_CASILLA_50"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>52</td>
+                                            <td>ITBIS POR SERVICIOS SUJETOS A RETENCIÓN SOCIEDADES (18% de la casilla 43 por 0.30) (Norma No. 02-05 y 07-07)</td>
+                                            <td class="text-center"><field name="IT1_CASILLA_52"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>60</th>
+                                            <th>IMPUESTO A PAGAR (Sumar casillas 50+51+52+55+58+59)</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_60"/></td>
+                                        </tr>
+                                        <tr>
+                                            <td>61</td>
+                                            <td>PAGOS COMPUTABLES A CUENTA</td>
+                                            <td class="text-center"><field name="IT1_CASILLA_61"/></td>
+                                        </tr>
+                                        <tr class="warning">
+                                            <th>62</th>
+                                            <th>DIFERENCIA A PAGAR (Si el valor de las casillas 60-61 es Positivo)</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_62"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th>63</th>
+                                            <th>NUEVO SALDO A FAVOR (Si el valor de las casillas 60-61 es Negativo)</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_63"/></td>
+                                        </tr>
+                                        <tr class="success">
+                                            <th colspan="2">B. PENALIDADES</th>
+                                            <th class="text-center">MONTO</th>
+                                        </tr>
+                                        <tr>
+                                            <td>64</td>
+                                            <td>RECARGOS</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>65</td>
+                                            <td>INTERÉS INDEMNIZATORIO</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>66</td>
+                                            <td>SANCIONES</td>
+                                            <td class="text-center"><field name="IT1_CASILLA_66"/></td>
+                                        </tr>
+                                        <tr class="success">
+                                            <th colspan="2">C. MONTO A PAGAR</th>
+                                            <th class="text-center">MONTO</th>
+                                        </tr>
+                                        <tr>
+                                            <th>67</th>
+                                            <th>TOTAL A PAGAR (Sumar casillas 62+64+65+66)</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_67"/></td>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="3"></th>
+                                        </tr>
+                                        <tr class="success">
+                                            <th>68</th>
+                                            <th>TOTAL GENERAL (Sumar casillas 38+67)</th>
+                                            <td class="text-center"><field name="IT1_CASILLA_68"/></td>
                                         </tr>
                                     </table>
                                 </group>
