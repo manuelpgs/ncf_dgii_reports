@@ -1,6 +1,6 @@
 # NCF DGII Reports
 
-Este módulo para ODOO 10 (por lo pronto) implementa los reportes de los números de comprobantes fiscales (NCF) para el cumplimento de la norma 06-18 de la Dirección de Impuestos Internos (DGII) en la República Dominicana. Ha sido probado en una empresa de servicios básica y necesita validaciones y calculos extras para ser implementado en negocios de personas físicas que usan su cédula como RNC, empresas de construcción, empresas de telecomunicaciones y proveedores del estado.
+Este módulo para ODOO 10 (por lo pronto) implementa los reportes de los números de comprobantes fiscales (NCF) para el cumplimento de la norma 06-18 de la Dirección de Impuestos Internos (DGII) en la República Dominicana, así como una guía para los reportes del ITBIS (IT1) y del anexo A del IT-1 (ITA). Ha sido probado en una empresa de servicios básica y necesita validaciones y calculos extras para ser implementado en negocios de personas físicas que usan su cédula como RNC, empresas de construcción, empresas de telecomunicaciones y proveedores del estado.
 
 Este repositorio tiene como objetivo que este módulo sea integrado en https://github.com/odoo-dominicana/l10n-dominicana y que sea mantenido por la comunidad de ODOO Dominicana.  Mientras tanto todo aquel que desee colaborar, puede hacer un Pull Request aquí.
 
@@ -26,9 +26,11 @@ Con esta acción podemos obtener la columna *12 - ITBIS RETENIDO* del reporte 60
 
 ### ESTADO ACTUAL  
 
-- 606 en Alpha 2 (ver ISSUES AND PENDING STUFF) .
-- 607 en Alpha 1 (ver ISSUES AND PENDING STUFF) .
+- 606 en Alpha 3 (ver ISSUES AND PENDING STUFF) .
+- 607 en Alpha 2 (ver ISSUES AND PENDING STUFF) .
 - 608 y 609 en pendiente de desarrollo.
+- Guía del ITA (Anexo A del IT1) en Alpha 1
+- Guía del IT1 (Declaración de ITBIS) en Alpha 1
 
 ## RECOMENDACIONES
 Luego de implementar este módulo, se recomienda hacer una revisión manual de los reportes al menos durante 3 períodos en búsca de bugs y cada vez que en un determinado período tenga novedades nuevas antes no usadas como puede ser recibir una Nota de Crédito y otros.
@@ -61,3 +63,7 @@ Luego de implementar este módulo, se recomienda hacer una revisión manual de l
 
 
 ### Autor: Manuel Gonzalez para SOFTNET TEAM SRL (https://www.softnet.do)
+
+
+### IMAGÉN DE EJEMPLO CON NÚMEROS DE PRUEBA.
+![Imagén de demo de los reportes del 606, 607 y guías del IT1 e ITA](https://res.cloudinary.com/drgtdlvxn/image/upload/v1539728958/DGII_REPORT.png)
