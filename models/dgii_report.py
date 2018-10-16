@@ -245,6 +245,8 @@ class DgiiReport(models.Model):
 
                 else:
 
+                    reporte.ANEXO_A_CASILLA_36_PCXOR_NORMA0205 += sale.ITBIS_RETENIDO_POR_TERCEROS
+
                     if int(report_month) == int(ncf_month) and report_year == ncf_year: # this validation is to avoid add amounts of invoices of previous months
 
                         '''
@@ -277,9 +279,7 @@ class DgiiReport(models.Model):
                         elif sale.TIPO_DE_INGRESO == 5:
                             reporte.ANEXO_A_CASILLA_23_IXVAD += sale.MONTO_FACTURADO
                         elif sale.TIPO_DE_INGRESO == 6:
-                            reporte.ANEXO_A_CASILLA_24_OTROS_INGRESOS += sale.MONTO_FACTURADO
-
-                        reporte.ANEXO_A_CASILLA_36_PCXOR_NORMA0205 += sale.ITBIS_RETENIDO_POR_TERCEROS
+                            reporte.ANEXO_A_CASILLA_24_OTROS_INGRESOS += sale.MONTO_FACTURADO                        
 
                     else:
 
