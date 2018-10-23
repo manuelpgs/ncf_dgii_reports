@@ -1505,7 +1505,7 @@ class DgiiReport(models.Model):
             ln += line.RNC_CEDULA + "|"
             ln += line.TIPO_IDENTIFICACION + "|"
             ln += line.TIPO_BIENES_SERVICIOS_COMPRADOS + "|"
-            ln += line.NUMERO_COMPROBANTE_FISCAL + "|"
+            ln += line.NUMERO_COMPROBANTE_FISCAL.strip() + "|"
             ln += line.NUMERO_COMPROBANTE_MODIFICADO + "|" if line.NUMERO_COMPROBANTE_MODIFICADO else "|"
             ln += line.FECHA_COMPROBANTE.replace("-", "") + "|"
             ln += line.FECHA_PAGO.replace("-", "") + "|" if line.FECHA_PAGO else "" + "|"
