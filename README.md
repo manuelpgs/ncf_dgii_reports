@@ -57,6 +57,8 @@ Luego de implementar este módulo, se recomienda hacer una revisión manual de l
 - En el 607, las columnas *14-ISC, 15-Otros Impuestos/Taxas y 16-Monto Propina Legal* no estan programada, para un negocio que las requiera, se le deben programar.
 - Estos reportes no tienen programación para las Notas de Débito aún.
 - Las guías del IT1 y el ANEXO A, solo toman en cuenta los comprobantes del tipo 01 (crédito fiscal) que emite el comercio.
+- Si una factura (_de ventas, 607_) recibe multiples pagos y le harán retención (_por ejemplo del 30% del itbis según la norma 02-05_), lo más natural es que esa retención sea registrada en el último pago que se le hace a la factura y el cual pone la factura como totalmente pagada.  Estos reportes usan este enfoque así que __OJO con esto!__
+- En el Anexo A, la parte de __III. OPERACIONES REPORTADAS EN EL 607 / LIBRO DE VENTAS POR TIPO DE VENTA (MONTO TOTAL INCLUYE IMPUESTOS)__ solo se toma en cuenta las facturas de ventas del período actual, si el 607 tiene facturas montadas de meses previos, (_porqué tienen retención que reportar_) estos valores pagados no se suman aquí. (_esto de acuerdo a las consultas con los contables_)
 
 
 ### Créditos:  Basado en el trabajo de Eneldo Serrata para Marcos Organizador de Negocios SRL. (https://marcos.do/) 

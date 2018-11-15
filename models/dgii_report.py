@@ -163,7 +163,7 @@ class DgiiReport(models.Model):
 
                     if TIPO_IDENTIFICACION == '1' and purchase.ITBIS_RETENIDO > 0 : # TIPO_IDENTIFICACION 1 is RNC
                         rec.SUBTOTAL_SERVICIOS_SUJETOS_RETENCION_SOCIEDADES_NORMA0205 += purchase.MONTO_FACTURADO
-                        _logger.warning("ITBIS RETENIDO: %s , NCF: %s , FECHA NCF: %s" % (purchase.ITBIS_RETENIDO, purchase.NUMERO_COMPROBANTE_FISCAL, purchase.FECHA_COMPROBANTE))
+                        # _logger.warning("ITBIS RETENIDO: %s , NCF: %s , FECHA NCF: %s" % (purchase.ITBIS_RETENIDO, purchase.NUMERO_COMPROBANTE_FISCAL, purchase.FECHA_COMPROBANTE))
 
                 summary_dict[purchase.invoice_id.expense_type]["count"] += 1
                 summary_dict[purchase.invoice_id.expense_type]["amount"] += purchase.MONTO_FACTURADO
@@ -444,7 +444,7 @@ class DgiiReport(models.Model):
                 FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR = self.get_payment_date_and_retention_data(invoice)
 
             if invoice.type == 'out_invoice': # 607
-                FECHA_PAGO, ITBIS_RETENIDO = self.get_607_itbis_retenido_and_date(invoice)
+                FECHA_RETENCION, ITBIS_RETENIDO, FECHA_PAGO = self.get_607_itbis_retenido_and_date(invoice)
                 RETENCION_RENTA = False #TODO need to be programmed for business and persons using "CÉDULA" as RNC, 'cause they can get ISR retentions
 
             if ITBIS_RETENIDO or RETENCION_RENTA:
@@ -795,6 +795,7 @@ class DgiiReport(models.Model):
 
         FECHA_RETENCION = None
         ITBIS_RETENIDO_POR_TERCEROS = None
+        FECHA_PAGO = None
 
         '''
         #TODO the below query return the last payment to the invoice.
@@ -810,6 +811,9 @@ class DgiiReport(models.Model):
         if payment_rel:
 
             payment = self.env["account.payment"].browse(payment_rel['payment_id'])
+
+            if payment:
+                FECHA_PAGO = payment.payment_date
 
             if payment.writeoff_account_id: # this payment could have retentions...
                 '''
@@ -842,7 +846,7 @@ class DgiiReport(models.Model):
                         ITBIS_RETENIDO_POR_TERCEROS = account_move_line.debit #TODO - We wait just one record, but take care, maybe could be more than one in some use cases what was no tested.
 
 
-        return FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS
+        return FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS, FECHA_PAGO
 
 
     '''
@@ -921,7 +925,7 @@ class DgiiReport(models.Model):
 
         if invoice.state == "paid":
 
-            FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS = self.get_607_itbis_retenido_and_date(invoice)
+            FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS, FECHA_PAGO = self.get_607_itbis_retenido_and_date(invoice)
             formas_pagos = self.get_forma_pago_ventas(invoice, commun_data)
 
             commun_data = dict(commun_data, **formas_pagos) # with this, we merge two dict.  All keys's values are overritten from A (commun_data) to what is set on B (formas_pagos)
@@ -944,11 +948,32 @@ class DgiiReport(models.Model):
             invoiceMonth = int(invoice.date_invoice[5:7])
             retentionMonth = int(FECHA_RETENCION[5:7]) if FECHA_RETENCION else False
             periodMonth = int(month)
+            paymentMonth = int(FECHA_PAGO[5:7]) if FECHA_PAGO else False
 
             if retentionMonth and invoiceMonth != retentionMonth and invoiceMonth == periodMonth:
                 commun_data['FECHA_RETENCION'] = None
                 commun_data['ITBIS_RETENIDO_POR_TERCEROS'] = 0
                 commun_data['MONTOS_A_CREDITO'] = invoice.amount_total_signed
+                commun_data['MONTOS_PAGADOS_EFECTIVO'] = commun_data['MONTOS_PAGADOS_BANCO'] = commun_data['MONTOS_PAGADOS_TARJETAS'] = commun_data['MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS'] = commun_data['MONTOS_EN_PERMUTA'] = commun_data['MONTOS_EN_OTRAS_FORMAS_VENTAS'] = 0
+
+            '''
+                Avoid set any payment form instead of "A CRÉDITO" for invoice paid months laters.
+
+                This case happen when for example an invoice was issue on June 2018,
+                then the customer paid it on July 2018, if you come back to June reports and re-generate it 
+                (or if ODOO re-generate it when you enter to it) then, without this validation below, 
+                you should see in the report of June that the invoice was paid with a payment form different of credit,
+                what is wrong because the invoice wasn't paid in that month.
+
+                This happen too when says that the invoice was paid in july 06, but you generated you 607 in july 10,
+                so this validation is to avoid that case too.
+
+                I know that this validation could be achieved in the above validation, but to avoid any issue with the
+                above logic, I prefer to keep it simple here.
+            '''
+            if periodMonth != paymentMonth:
+                commun_data['MONTOS_A_CREDITO'] = invoice.amount_total_signed
+                #TODO is correct set all the invoice total as CREDIT if there is some partial payment in Cash for example?
                 commun_data['MONTOS_PAGADOS_EFECTIVO'] = commun_data['MONTOS_PAGADOS_BANCO'] = commun_data['MONTOS_PAGADOS_TARJETAS'] = commun_data['MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS'] = commun_data['MONTOS_EN_PERMUTA'] = commun_data['MONTOS_EN_OTRAS_FORMAS_VENTAS'] = 0
 
             gran_total_paid_plus_retentions = commun_data['GRAN_TOTAL_PAGADO'] + commun_data['ITBIS_RETENIDO_POR_TERCEROS'] if commun_data['ITBIS_RETENIDO_POR_TERCEROS'] else commun_data['GRAN_TOTAL_PAGADO']
