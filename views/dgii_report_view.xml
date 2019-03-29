@@ -626,6 +626,126 @@
                                     </table>
                                 </group>
 
+                                <group style="width: 100%; margin-top: -28px">
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <tr>
+                                            <th colspan="2">IX. ITBIS PAGADO</th>
+                                            <th>COMPRAS LOCALES*</th>
+                                            <th>SERVICIOS*</th>
+                                            <th>IMPORTACIONES</th>
+                                            <th>TOTAL</th>
+                                        </tr>
+                                        <tr class="info">
+                                            <td>A)</td>
+                                            <td colspan="5">NO DEDUCIBLE (Llevado al Costo/Gasto)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>45</td>
+                                            <td>EN OPERACIONES DE PRODUCTORES DE BIENES O SERVICIOS EXENTOS</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>46</td>
+                                            <td>A INCLUIR EN ACTIVOS (CATEGORÍA I)</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>47</td>
+                                            <td>OTROS ITBIS PAGADOS NO DEDUCIBLES</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr class="info">
+                                            <td>48</td>
+                                            <td>TOTAL ITBIS NO DEDUCIBLE (45+46+47)</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr class="info">
+                                            <td>B)</td>
+                                            <td colspan="5">DEDUCIBLE</td>
+                                        </tr>
+                                        <tr>
+                                            <td>49</td>
+                                            <td>EN LA PRODUCCIÓN Y/O VENTA DE BIENES EXPORTADOS</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>50</td>
+                                            <td>EN LA PRODUCCIÓN Y/O VENTA DE BIENES GRAVADOS</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>
+                                        <tr>
+                                            <td>51</td>
+                                            <td>EN LA PRESTACIÓN DE SERVICIOS GRAVADOS</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_51_COMPRAS_LOCALES_PRESTACION_SERVICIOS_GRAVADOS"/></td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_51_SERVICIOS_PRESTACION_SERVICIOS_GRAVADOS"/></td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_51_TOTAL"/></td>
+                                        </tr>
+                                        <tr class="info">
+                                            <td>52</td>
+                                            <td>TOTAL ITBIS DEDUCIBLE NO SUJETO A PROPORCIONALIDAD (49+50+51)</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_52_COMPRAS_LOCALES_TOTAL"/></td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_52_SERVICIOS_TOTAL"/></td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_52_TOTAL_TOTAL"/></td>
+                                        </tr>
+                                        <tr class="info">
+                                            <td>C)</td>
+                                            <td colspan="5">ITBIS SUJETO A PROPORCIONALIDAD (Art. 349 de Código Tributario)</td>
+                                        </tr>
+                                        <tr>
+                                            <td>53</td>
+                                            <td>ITBIS SUJETO A PROPORCIONALIDAD</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>                                        
+                                        <tr>
+                                            <td>54</td>
+                                            <td><strong>COEFICIENTE DE PROPORCIONALIDAD ((((Casillas 2 + 5 + 10 del IT1) / Casilla 1 del IT1)) * 100) Si aplica.</strong></td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>                                        
+                                        <tr>
+                                            <td>55</td>
+                                            <td><strong>ITBIS ADMITIDO POR APLICACIÓN DE PROPORCIONALIDAD (Casillas 53 * 54)</strong></td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center">N/A</td>
+                                        </tr>                                        
+                                        <tr>
+                                            <td>56</td>
+                                            <td><strong>TOTAL ITBIS DEDUCIBLE (52+55)</strong></td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_56_COMPRAS_LOCALES_TOTAL_ITBIS_DEDUCIBLE"/></td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_56_SERVICIOS_TOTAL_ITBIS_DEDUCIBLE"/></td>
+                                            <td class="text-center">N/A</td>
+                                            <td class="text-center"><field name="ANEXO_A_CASILLA_56_TOTAL_TOTAL_ITBIS_DEDUCIBLE"/></td>
+                                        </tr>                                        
+                                    </table>
+                                </group>
+
                                 <group style="width: 100%"><h2>IT-1: COLOCAR LOS SIGUIENTES VALORES EN LA CASILLA INDICADA</h2></group>
                                 <br />
                                 <group style="width: 100%">
