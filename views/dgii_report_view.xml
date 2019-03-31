@@ -721,7 +721,7 @@
                                             <td class="text-center">N/A</td>
                                             <td class="text-center">N/A</td>
                                             <td class="text-center">N/A</td>
-                                        </tr>                                        
+                                        </tr>
                                         <tr>
                                             <td>54</td>
                                             <td><strong>COEFICIENTE DE PROPORCIONALIDAD ((((Casillas 2 + 5 + 10 del IT1) / Casilla 1 del IT1)) * 100) Si aplica.</strong></td>
@@ -729,7 +729,7 @@
                                             <td class="text-center">N/A</td>
                                             <td class="text-center">N/A</td>
                                             <td class="text-center">N/A</td>
-                                        </tr>                                        
+                                        </tr>
                                         <tr>
                                             <td>55</td>
                                             <td><strong>ITBIS ADMITIDO POR APLICACIÓN DE PROPORCIONALIDAD (Casillas 53 * 54)</strong></td>
@@ -737,7 +737,7 @@
                                             <td class="text-center">N/A</td>
                                             <td class="text-center">N/A</td>
                                             <td class="text-center">N/A</td>
-                                        </tr>                                        
+                                        </tr>
                                         <tr>
                                             <td>56</td>
                                             <td><strong>TOTAL ITBIS DEDUCIBLE (52+55)</strong></td>
@@ -745,7 +745,7 @@
                                             <td class="text-center"><field name="ANEXO_A_CASILLA_56_SERVICIOS_TOTAL_ITBIS_DEDUCIBLE"/></td>
                                             <td class="text-center">N/A</td>
                                             <td class="text-center"><strong><field name="ANEXO_A_CASILLA_56_TOTAL_TOTAL_ITBIS_DEDUCIBLE"/></strong></td>
-                                        </tr>                                        
+                                        </tr>
                                     </table>
                                 </group>
 
@@ -1121,8 +1121,19 @@
         <!-- This Menu Item must have a parent and an action -->
         <!-- parent="ncf_manager.marcos_account_dgii_menu" -->
         <menuitem action="dgii_report_action" id="marcos_ncf_dgii_report_wizard_menu"
-                  parent="account.account_account_menu"
+                  parent="account.menu_finance"
                   sequence="2"/>
+
+        <menuitem id="dgii_root_menu"
+                name="DGII"
+                parent="account.menu_finance"
+                sequence="5"
+                groups="account.group_account_user,account.group_account_manager,account.group_account_invoice"/>
+
+        <menuitem id="dgii_report_menu"
+                action="dgii_report_action"
+                parent="dgii_root_menu"
+                sequence="1"/>
 
         <record id="dgii_eport_purchase_line_action" model="ir.actions.act_window">
             <field name="name">Consultas lineas del 606</field>
@@ -1141,7 +1152,7 @@
 
         <!-- This Menu Item must have a parent and an action -->
         <!-- parent="marcos_account_dgii_menu" -->
-        <menuitem id="dgii_eport_purchase_line_menu" name="Consultas lineas del 606" parent="marcos_ncf_dgii_report_wizard_menu"
+        <menuitem id="dgii_eport_purchase_line_menu" name="Consultas lineas del 606" parent="dgii_root_menu"
                   action="dgii_eport_purchase_line_action" sequence="3"/>
 
         <record id="dgii_report_sale_line_action" model="ir.actions.act_window">
@@ -1161,7 +1172,7 @@
 
         <!-- This Menu Item must have a parent and an action -->
         <!-- parent="marcos_account_dgii_menu" -->
-        <menuitem id="dgii_report_sale_line_menu" name="Consultas lineas del 607" parent="marcos_ncf_dgii_report_wizard_menu"
+        <menuitem id="dgii_report_sale_line_menu" name="Consultas lineas del 607" parent="dgii_root_menu"
                   action="dgii_report_sale_line_action" sequence="4"/>
 
 
