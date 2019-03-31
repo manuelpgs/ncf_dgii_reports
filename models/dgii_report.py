@@ -328,28 +328,51 @@ class DgiiReport(models.Model):
     @api.multi
     @api.depends("purchase_report", "sale_report")
     def _it1_report(self):
+
+        '''
+            ********** ITA STUFF ***************
+        '''
+        self.ANEXO_A_CASILLA_51_COMPRAS_LOCALES_PRESTACION_SERVICIOS_GRAVADOS = self.ITBIS_FACTURADO_BIENES # self.ITBIS_FACTURADO_BIENES has deduced ITBIS in NC 
+        self.ANEXO_A_CASILLA_51_SERVICIOS_PRESTACION_SERVICIOS_GRAVADOS = self.ITBIS_FACTURADO_SERVICIOS # self.ITBIS_FACTURADO_SERVICIOS has deduced ITBIS in NC 
+        self.ANEXO_A_CASILLA_51_TOTAL = self.ANEXO_A_CASILLA_51_COMPRAS_LOCALES_PRESTACION_SERVICIOS_GRAVADOS + self.ANEXO_A_CASILLA_51_SERVICIOS_PRESTACION_SERVICIOS_GRAVADOS
+
+        self.ANEXO_A_CASILLA_52_COMPRAS_LOCALES_TOTAL = self.ANEXO_A_CASILLA_51_COMPRAS_LOCALES_PRESTACION_SERVICIOS_GRAVADOS 
+        self.ANEXO_A_CASILLA_52_SERVICIOS_TOTAL = self.ANEXO_A_CASILLA_51_SERVICIOS_PRESTACION_SERVICIOS_GRAVADOS 
+        self.ANEXO_A_CASILLA_52_TOTAL_TOTAL = self.ANEXO_A_CASILLA_51_TOTAL
+
+        self.ANEXO_A_CASILLA_56_COMPRAS_LOCALES_TOTAL_ITBIS_DEDUCIBLE = self.ANEXO_A_CASILLA_52_COMPRAS_LOCALES_TOTAL 
+        self.ANEXO_A_CASILLA_56_SERVICIOS_TOTAL_ITBIS_DEDUCIBLE = self.ANEXO_A_CASILLA_52_SERVICIOS_TOTAL 
+        self.ANEXO_A_CASILLA_56_TOTAL_TOTAL_ITBIS_DEDUCIBLE = self.ANEXO_A_CASILLA_52_TOTAL_TOTAL
+
+        '''
+        **********  IT1 STUFF ***************
+        '''
+
         self.IT1_CASILLA_1 = self.ANEXO_A_CASILLA_11_TOTAL_OPERACIONES
-        self.IT1_CASILLA_8 = self.ANEXO_A_CASILLA_11_TOTAL_OPERACIONES
-        self.IT1_CASILLA_9 = self.ANEXO_A_CASILLA_11_TOTAL_OPERACIONES
+        self.IT1_CASILLA_10 = self.ANEXO_A_CASILLA_11_TOTAL_OPERACIONES
+        self.IT1_CASILLA_11 = self.ANEXO_A_CASILLA_11_TOTAL_OPERACIONES
         self.IT1_CASILLA_14 = (self.ANEXO_A_CASILLA_11_TOTAL_OPERACIONES * 18) / 100
-        self.IT1_CASILLA_19 = self.IT1_CASILLA_14
-        self.IT1_CASILLA_20 = self.ITBIS_FACTURADO_BIENES # This amount is substraying the ITBIS in NC
-        self.IT1_CASILLA_21 = self.ITBIS_FACTURADO_SERVICIOS # This amount is substraying the ITBIS in NC
-        self.IT1_CASILLA_23 = self.ITBIS_TOTAL_PAYMENT # This amount is substraying the ITBIS in NC
-        self.IT1_CASILLA_25 = self.IT1_CASILLA_23
-        self.IT1_CASILLA_26 = self.IT1_CASILLA_19 - self.IT1_CASILLA_25
+        self.IT1_CASILLA_21 = self.IT1_CASILLA_14
+        self.IT1_CASILLA_22 = self.ANEXO_A_CASILLA_56_COMPRAS_LOCALES_TOTAL_ITBIS_DEDUCIBLE # New IT1 way
+        self.IT1_CASILLA_23 = self.ANEXO_A_CASILLA_56_SERVICIOS_TOTAL_ITBIS_DEDUCIBLE # New IT1 way
+        self.IT1_CASILLA_25 = self.IT1_CASILLA_22 + self.IT1_CASILLA_23
+        self.IT1_CASILLA_26 = self.IT1_CASILLA_21 - self.IT1_CASILLA_25
         self.IT1_CASILLA_27 = abs(self.IT1_CASILLA_26) if self.IT1_CASILLA_26 < 0 else 0
+        self.IT1_CASILLA_28 = self.dgii_refunds
         self.IT1_CASILLA_29 = self.positive_balance
         self.IT1_CASILLA_30 = self.ANEXO_A_CASILLA_33_TOTAL_PAGOS_COMPUTABLES_RETENCIONES
+        self.IT1_CASILLA_31 = self.amount_paid_in_advance
+        self.IT1_CASILLA_32 = self.dgii_refunds2
 
-        operation = float(self.IT1_CASILLA_26) - (float(self.IT1_CASILLA_29) + float(self.IT1_CASILLA_30))
+        company_compensations = float(self.IT1_CASILLA_28) + float(self.IT1_CASILLA_29) + float(self.IT1_CASILLA_30) + float(self.IT1_CASILLA_31) + float(self.IT1_CASILLA_32)
+        operation = float(self.IT1_CASILLA_26) - float(company_compensations)
         self.IT1_CASILLA_33 = operation if operation > 0 else 0
 
         '''
-            self.IT1_CASILLA_26 comes negative whether self.IT1_CASILLA_25 is greater than self.IT1_CASILLA_19,
-            so we don't need add self.IT1_CASILLA_27 to the addition below (it is the negative value of self.IT1_CASILLA_26).
+            self.IT1_CASILLA_26 comes negative whether self.IT1_CASILLA_25 is greater than self.IT1_CASILLA_21,
+            so we don't need add self.IT1_CASILLA_27 to the addition below (this is the negative value of self.IT1_CASILLA_26).
         '''
-        self.IT1_CASILLA_34 = abs(float(self.IT1_CASILLA_26) - (float(self.IT1_CASILLA_29) + float(self.IT1_CASILLA_30))) if operation < 0 else 0
+        self.IT1_CASILLA_34 = abs(float(self.IT1_CASILLA_26) - float(company_compensations)) if operation < 0 else 0
 
         if self.IT1_CASILLA_34 > 0: # New positive balance
             _logger.warning('New positive balance in IT1: %s' % self.IT1_CASILLA_34)
@@ -368,7 +391,7 @@ class DgiiReport(models.Model):
         self.IT1_CASILLA_60 = self.IT1_CASILLA_50 + self.IT1_CASILLA_52
         self.IT1_CASILLA_61 = self.pagos_computables_cuenta
 
-        differenceToPay = self.IT1_CASILLA_60 - self.IT1_CASILLA_61
+        differenceToPay = float(self.IT1_CASILLA_60) - float(self.IT1_CASILLA_61)
         self.IT1_CASILLA_62 = differenceToPay if differenceToPay > 0 else 0
         self.IT1_CASILLA_63 = abs(differenceToPay) if differenceToPay < 0 else 0
         
@@ -377,18 +400,6 @@ class DgiiReport(models.Model):
         
         totalGeneral = self.IT1_CASILLA_38 + self.IT1_CASILLA_67
         self.IT1_CASILLA_68 = totalGeneral if totalGeneral > 0 else 0
-
-        self.ANEXO_A_CASILLA_51_COMPRAS_LOCALES_PRESTACION_SERVICIOS_GRAVADOS = self.ITBIS_FACTURADO_BIENES 
-        self.ANEXO_A_CASILLA_51_SERVICIOS_PRESTACION_SERVICIOS_GRAVADOS = self.ITBIS_FACTURADO_SERVICIOS 
-        self.ANEXO_A_CASILLA_51_TOTAL = self.ANEXO_A_CASILLA_51_COMPRAS_LOCALES_PRESTACION_SERVICIOS_GRAVADOS + self.ANEXO_A_CASILLA_51_SERVICIOS_PRESTACION_SERVICIOS_GRAVADOS
-
-        self.ANEXO_A_CASILLA_52_COMPRAS_LOCALES_TOTAL = self.ANEXO_A_CASILLA_51_COMPRAS_LOCALES_PRESTACION_SERVICIOS_GRAVADOS 
-        self.ANEXO_A_CASILLA_52_SERVICIOS_TOTAL = self.ANEXO_A_CASILLA_51_SERVICIOS_PRESTACION_SERVICIOS_GRAVADOS 
-        self.ANEXO_A_CASILLA_52_TOTAL_TOTAL = self.ANEXO_A_CASILLA_51_TOTAL
-
-        self.ANEXO_A_CASILLA_56_COMPRAS_LOCALES_TOTAL_ITBIS_DEDUCIBLE = self.ANEXO_A_CASILLA_52_COMPRAS_LOCALES_TOTAL 
-        self.ANEXO_A_CASILLA_56_SERVICIOS_TOTAL_ITBIS_DEDUCIBLE = self.ANEXO_A_CASILLA_52_SERVICIOS_TOTAL 
-        self.ANEXO_A_CASILLA_56_TOTAL_TOTAL_ITBIS_DEDUCIBLE = self.ANEXO_A_CASILLA_52_TOTAL_TOTAL
 
 
     @api.multi
@@ -1738,7 +1749,10 @@ class DgiiReport(models.Model):
     company_id = fields.Many2one('res.company', 'EMPRESA', required=False,
                                  default=lambda self: self.env.user.company_id)
     name = fields.Char(string=u"PERÍODO MES/AÑO", required=True, unique=True, index=True)
+    dgii_refunds = fields.Float(u"SALDOS COMPENSABLES AUTORIZADOS (Otros Impuestos) Y/O REEMBOLSOS (CASILLA 28 DEL IT1)", required=False)
     positive_balance = fields.Float(u"SALDO A FAVOR ANTERIOR", required=True)
+    amount_paid_in_advance = fields.Float(u"Otros Pagos Computables a Cuenta (CASILLA 31 DEL IT1)", required=False)
+    dgii_refunds2 = fields.Float(u"Compensaciones y/o Reembolsos Autorizados (CASILLA 32 DEL IT1)", required=False)
     positive_balance_current_period = fields.Float(u"NUEVO SALDO A FAVOR", required=False) # the idea with this field is to be set as "positive_balance" in the report of the next month
     penalties = fields.Float(u"SANCIONES (CASILLA 37 DEL IT1)", required=False)
     pagos_computables_cuenta = fields.Float(u"PAGOS COMPUTABLES A CUENTA (CASILLA 61 DEL IT1)", required=False)
@@ -1887,18 +1901,20 @@ class DgiiReport(models.Model):
 
     # IT1 (fields)
     IT1_CASILLA_1 = fields.Float(compute=_it1_report)
-    IT1_CASILLA_8 = fields.Float(compute=_it1_report)
-    IT1_CASILLA_9 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_10 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_11 = fields.Float(compute=_it1_report)
     IT1_CASILLA_14 = fields.Float(compute=_it1_report)
-    IT1_CASILLA_19 = fields.Float(compute=_it1_report)
-    IT1_CASILLA_20 = fields.Float(compute=_it1_report)
     IT1_CASILLA_21 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_22 = fields.Float(compute=_it1_report)
     IT1_CASILLA_23 = fields.Float(compute=_it1_report)
     IT1_CASILLA_25 = fields.Float(compute=_it1_report)
     IT1_CASILLA_26 = fields.Float(compute=_it1_report)
     IT1_CASILLA_27 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_28 = fields.Float(compute=_it1_report)
     IT1_CASILLA_29 = fields.Float(compute=_it1_report)
     IT1_CASILLA_30 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_31 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_32 = fields.Float(compute=_it1_report)
     IT1_CASILLA_33 = fields.Float(compute=_it1_report)
     IT1_CASILLA_34 = fields.Float(compute=_it1_report)
     IT1_CASILLA_37 = fields.Float(compute=_it1_report)
