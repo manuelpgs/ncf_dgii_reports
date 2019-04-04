@@ -780,9 +780,9 @@
                                             <th class="text-center">MONTO</th>
                                         </tr>
                                         <tr>
-                                            <td>14</td>
+                                            <td>16</td>
                                             <td>ITBIS COBRADO (18% de la casilla 11)</td>
-                                            <td class="text-center"><field name="IT1_CASILLA_14"/></td>
+                                            <td class="text-center"><field name="IT1_CASILLA_16"/></td>
                                         </tr>
                                         <tr>
                                             <th>21</th>

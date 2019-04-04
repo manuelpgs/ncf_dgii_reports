@@ -351,8 +351,8 @@ class DgiiReport(models.Model):
         self.IT1_CASILLA_1 = self.ANEXO_A_CASILLA_11_TOTAL_OPERACIONES
         self.IT1_CASILLA_10 = self.ANEXO_A_CASILLA_11_TOTAL_OPERACIONES
         self.IT1_CASILLA_11 = self.ANEXO_A_CASILLA_11_TOTAL_OPERACIONES
-        self.IT1_CASILLA_14 = (self.ANEXO_A_CASILLA_11_TOTAL_OPERACIONES * 18) / 100
-        self.IT1_CASILLA_21 = self.IT1_CASILLA_14
+        self.IT1_CASILLA_16 = (self.ANEXO_A_CASILLA_11_TOTAL_OPERACIONES * 18) / 100
+        self.IT1_CASILLA_21 = self.IT1_CASILLA_16
         self.IT1_CASILLA_22 = self.ANEXO_A_CASILLA_56_COMPRAS_LOCALES_TOTAL_ITBIS_DEDUCIBLE # New IT1 way
         self.IT1_CASILLA_23 = self.ANEXO_A_CASILLA_56_SERVICIOS_TOTAL_ITBIS_DEDUCIBLE # New IT1 way
         self.IT1_CASILLA_25 = self.IT1_CASILLA_22 + self.IT1_CASILLA_23
@@ -1903,7 +1903,7 @@ class DgiiReport(models.Model):
     IT1_CASILLA_1 = fields.Float(compute=_it1_report)
     IT1_CASILLA_10 = fields.Float(compute=_it1_report)
     IT1_CASILLA_11 = fields.Float(compute=_it1_report)
-    IT1_CASILLA_14 = fields.Float(compute=_it1_report)
+    IT1_CASILLA_16 = fields.Float(compute=_it1_report)
     IT1_CASILLA_21 = fields.Float(compute=_it1_report)
     IT1_CASILLA_22 = fields.Float(compute=_it1_report)
     IT1_CASILLA_23 = fields.Float(compute=_it1_report)
