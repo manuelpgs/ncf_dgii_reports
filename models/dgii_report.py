@@ -1059,7 +1059,7 @@ class DgiiReport(models.Model):
         untax_ids = (sale_except_tax_id.id, purchase_except_tax_id.id)
 
         journal_ids = self.env["account.journal"].search(
-            ['|', ('ncf_control', '=', True), ('ncf_remote_validation', '=', True)])
+            ['|', ('ncf_control', '=', True), ('type', '=', 'purchase')])
 
         # searching invoices to this period
         invoice_ids = self.env["account.invoice"].search([
