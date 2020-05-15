@@ -503,7 +503,9 @@ class DgiiReport(models.Model):
         if vat and len(vat) == 11 and not cedula.is_valid(vat):
             error_list.append(u"La Cédula no es válida")
 
-        if not ncf.is_valid(invoice.number) or not ncf.check_dgii(vat, invoice.number):
+        if invoice.journal_id.ncf_remote_validation \
+            and not ncf.is_valid(invoice.number) \
+            or not ncf.check_dgii(vat, invoice.number):
             error_list.append(u"El NCF no es válido.  RNC: %s y tipo de Factura: %s" % (vat, invoice.type))
 
         if  not invoice.refund_invoice_id and invoice.type in ("out_refund", "in_refund"):
