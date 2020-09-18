@@ -62,6 +62,23 @@ class DgiiReport(models.Model):
     _inherit = ['mail.thread', 'ir.needaction_mixin']
     _order = "name"
 
+
+    def getTipoComprobante(self, purchase):
+
+        if len(purchase.NUMERO_COMPROBANTE_FISCAL) == 19:
+            return purchase.NUMERO_COMPROBANTE_FISCAL[9:-8]
+        else:
+            return purchase.NUMERO_COMPROBANTE_FISCAL[1:3]
+
+
+    def isCreditNote(self, ncf):
+
+        # If true, this is a Credit Note (the len validation if for old old format of NCF and to avoid false positive with invoice like 'B0100000004'
+        if ncf.startswith('B04') or ncf.startswith('E34') or (ncf[9:11] == '04' and len(ncf) > 11):
+            return True
+        else:
+            return False
+
     @api.multi
     @api.depends("purchase_report")
     def _purchase_report_totals(self):
@@ -236,7 +253,7 @@ class DgiiReport(models.Model):
                 TIPO_COMPROBANTE = self.getTipoComprobante(sale)
                 ncf_year, ncf_month, ncf_day = sale.FECHA_COMPROBANTE.split("-")
 
-                if TIPO_COMPROBANTE == "04": # 04 = NOTAS DE CRÉDITOS
+                if TIPO_COMPROBANTE in ("04", "34"): # 04 = NOTAS DE CRÉDITOS
 
                     reporte.SALE_ITBIS_NC += sale.ITBIS_FACTURADO
                     reporte.SALE_TOTAL_MONTO_NC += sale.MONTO_FACTURADO
@@ -569,7 +586,7 @@ class DgiiReport(models.Model):
         self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice.id)
         payment_rel = self.env.cr.dictfetchone() # return just one diccionario, like laravel: ->first()
 
-        if invoice.number.startswith('B04'): # This is a Credit Note
+        if self.isCreditNote(invoice.number): # This is a Credit Note
             '''
             #TODO validate with an accountant if Credit Note require payment date.
             # If true so this is the same date when the NC was made.
@@ -642,11 +659,11 @@ class DgiiReport(models.Model):
             if account_move_lines:
                 for line in account_move_lines:
                     if line.tax_line_id.purchase_tax_type == "isc":
-                        IMPUESTO_ISC += line.debit #TODO ask to accountant if the field should be debit or credit, by now I am seeting those value in debit field
+                        IMPUESTO_ISC += line.credit if self.isCreditNote(line.invoice_id.number) else line.debit
                     elif line.tax_line_id.purchase_tax_type in ("cdt"): #TODO might be there another taxes as "IMPUESTOS_OTROS" that are not just CDT.
-                        IMPUESTOS_OTROS += line.debit #TODO ask to accountant if the field should be debit or credit, by now I am seeting those value in debit field
+                        IMPUESTOS_OTROS += line.credit if self.isCreditNote(line.invoice_id.number) else line.debit
                     elif line.tax_line_id.purchase_tax_type in ("propina_legal"):
-                        MONTO_PROPINA_LEGAL += line.debit #TODO ask to accountant if the field should be debit or credit, by now I am seeting those value in debit field
+                        MONTO_PROPINA_LEGAL += line.credit if self.isCreditNote(line.invoice_id.number) else line.debit
 
         return IMPUESTO_ISC, IMPUESTOS_OTROS, MONTO_PROPINA_LEGAL
 
@@ -659,8 +676,8 @@ class DgiiReport(models.Model):
 
             self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice.id)
             payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
-
-            if invoice.number.startswith('B04') or (invoice.number[9:11] == '04' and len(invoice.number) > 11): # This is a Credit Note, the len validation if to avoid false positive with invoice like 'B0100000004'
+            
+            if self.isCreditNote(invoice.number):
                 '''
                 #TODO validate with an accountant if Credit Note require Payment Method.
                 By now, one accoutant (Henry) said that he think could be the same payment method as original invoice or could be leave empty. (Aug 14th, 2018).
@@ -884,7 +901,7 @@ class DgiiReport(models.Model):
         self.env.cr.execute("select * from account_invoice_payment_rel where invoice_id = %s" % invoice.id)
         payment_rel = self.env.cr.dictfetchall() # return an array of dicts, like laravel: ->get()
 
-        if  invoice.number.startswith('B04') or (invoice.number[9:11] == '04' and len(invoice.number) > 11): # This is a Credit Note, the len validation if to avoid false positive with invoice like 'B0100000004'
+        if self.isCreditNote(invoice.number):
             '''
             #TODO validate with an accountant if Credit Note require "Payment Method".
             By now, one accoutant (Henry) said that by logic, NC should have the same payment method as original invoice,
@@ -1737,13 +1754,6 @@ class DgiiReport(models.Model):
         report = base64.b64encode(file.read())
         report_name = 'DGII_608_{}_{}{}.TXT'.format(company_fiscal_identificacion, str(year), str(month).zfill(2))
         self.write({'cancel_binary': report, 'cancel_filename': report_name})
-
-    def getTipoComprobante(self, purchase):
-
-        if len(purchase.NUMERO_COMPROBANTE_FISCAL) == 19:
-            return purchase.NUMERO_COMPROBANTE_FISCAL[9:-8]
-        else:
-            return purchase.NUMERO_COMPROBANTE_FISCAL[1:3]
 
 
     '''
