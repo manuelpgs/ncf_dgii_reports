@@ -118,7 +118,7 @@ class DgiiReport(models.Model):
                 TIPO_COMPROBANTE = self.getTipoComprobante(purchase)
                 ncf_year, ncf_month, ncf_day = purchase.FECHA_COMPROBANTE.split("-")
 
-                if TIPO_COMPROBANTE == "04": # 04 = NOTAS DE CRÉDITOS #TODO check to validate NC for Monto Facturado Bienes/Servicios
+                if TIPO_COMPROBANTE in ("04", "34"): # 04 AND 34 = NOTAS DE CRÉDITOS #TODO check to validate NC for Monto Facturado Bienes/Servicios
 
                     rec.ITBIS_TOTAL_NC += purchase.ITBIS_FACTURADO_TOTAL
                     rec.TOTAL_MONTO_NC += purchase.MONTO_FACTURADO
