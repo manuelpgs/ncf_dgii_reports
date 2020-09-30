@@ -886,8 +886,26 @@ class DgiiReport(models.Model):
                     account_move_line = self.env["account.move.line"].search([('ref', '=', invoice.move_name),('account_id', '=', payment.writeoff_account_id.id)])
 
                     if account_move_line:
+                        
                         FECHA_RETENCION = payment.payment_date # in practical terms, this is  "FECHA DE RETENCIÓN" in 607 report.
-                        ITBIS_RETENIDO_POR_TERCEROS = account_move_line.debit #TODO - We wait just one record, but take care, maybe could be more than one in some use cases what was no tested.
+                        
+                        '''
+                            #TODO - We wait just one record, but take care, maybe could be more than one in some use cases what was no tested.
+                            In our experience, for some reason they are registering more than one payment for the same invoice,
+                            how? we don't know how, but it is happening and so this line throw the error: 
+                            ValueError: Expected singleton account.move.line(8914, 8671)
+                            where 8914, 8671 are the move line ids duplicated.
+
+                            So, this error help us to identificate and prevent error in our declaration to DGII 
+                            when an invoice had retention.  In our workflow, we never store more than one payment for
+                            an invoice with retention, if the customer did many payments, we only set the invoice as paid
+                            in the last payment with just one payment with all payment split that our customer did sumed.
+
+                            In resumen, we can fix this error getting just the last account_move_line, but maybe 
+                            we don't want fix it and let live it to prevent an error in the report to DGII.
+                        '''
+                        ITBIS_RETENIDO_POR_TERCEROS = account_move_line.debit
+                        
 
 
         return FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS, FECHA_PAGO
