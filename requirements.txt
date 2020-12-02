@@ -1,0 +1,6 @@
+openpyxl
+simplejson
+xlsxwriter
+zeep
+python-stdnum>=1.12
+pycountry>=19.8.18
