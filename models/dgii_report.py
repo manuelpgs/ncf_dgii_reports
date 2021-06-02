@@ -950,7 +950,7 @@ class DgiiReport(models.Model):
 
             for prel in payment_rel:
 
-                payment = self.env["account.payment"].browse(prel['payment_id'])
+                payment = self.env["account.payment"].browse(prel['payment_id']).filtered(lambda x: x.state != "draft")
 
                 if payment.journal_id.payment_form == 'cash':
                     commun_data['MONTOS_PAGADOS_EFECTIVO'] += payment.amount
