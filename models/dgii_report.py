@@ -478,7 +478,7 @@ class DgiiReport(models.Model):
             # last_payment = self.env["account.payment"].browse(payment_rel['payment_id'])
             invoice = self.env["account.invoice"].browse(payment_rel['invoice_id'])
 
-            # RETENCION_RENTA =  ITBIS_RETENIDO = False
+            RETENCION_RENTA =  ITBIS_RETENIDO = False
 
             if invoice.type == 'in_invoice': # 606
                 FECHA_PAGO, ITBIS_RETENIDO, RETENCION_RENTA, TIPO_RETENCION_ISR = self.get_payment_date_and_retention_data(invoice)
@@ -486,6 +486,9 @@ class DgiiReport(models.Model):
             if invoice.type == 'out_invoice': # 607
                 FECHA_RETENCION, ITBIS_RETENIDO, FECHA_PAGO = self.get_607_itbis_retenido_and_date(invoice)
                 RETENCION_RENTA = False #TODO need to be programmed for business and persons using "CÉDULA" as RNC, 'cause they can get ISR retentions
+
+            if invoice.type not in('in_invoice', 'out_invoice'):
+                _logger.warning("INVOICE_TYPE: %s in method get_late_paid_invoice_with_retentions" % (invoice.type))
 
             if ITBIS_RETENIDO or RETENCION_RENTA:
                 invoices |= invoice # this is like array_push(), just making appends
