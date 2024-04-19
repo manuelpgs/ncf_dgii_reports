@@ -478,6 +478,8 @@ class DgiiReport(models.Model):
             # last_payment = self.env["account.payment"].browse(payment_rel['payment_id'])
             invoice = self.env["account.invoice"].browse(payment_rel['invoice_id'])
 
+            # _logger.warning("INVOICE ID: %s , INVOICE TYPE: %s , INVOICE NUMBER: %s in method get_late_paid_invoice_with_retentions" % (invoice.id, invoice.type, invoice.number))
+
             # needed for in_refund invoice
             RETENCION_RENTA =  ITBIS_RETENIDO = False
 
@@ -879,6 +881,9 @@ class DgiiReport(models.Model):
                 '''
 
                 if payment.writeoff_account_id.sale_tax_type == 'ritbis_pjuridica_n_02_05':
+
+                    # _logger.warning("payment.id: %s , payment.writeoff_account_id.sale_tax_type: %s, " % (payment.id, payment.writeoff_account_id.sale_tax_type))
+
                     '''
                         So, go ahead and look for the retention amount in move lines...
 
@@ -911,7 +916,10 @@ class DgiiReport(models.Model):
                         '''
                         ITBIS_RETENIDO_POR_TERCEROS = account_move_line.debit
                         
+        # if FECHA_PAGO == '2023-10-13':
+            # _logger.warning("INVOICE ID: %s , INVOICE TYPE: %s , INVOICE NUMBER: %s in method get_late_paid_invoice_with_retentions" % (invoice.id, invoice.type, invoice.number))
 
+        # _logger.warning("FECHA_RETENCION: %s , ITBIS_RETENIDO_POR_TERCEROS: %s , FECHA_PAGO: %s in method get_late_paid_invoice_with_retentions" % (FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS, FECHA_PAGO))
 
         return FECHA_RETENCION, ITBIS_RETENIDO_POR_TERCEROS, FECHA_PAGO
 
@@ -957,20 +965,32 @@ class DgiiReport(models.Model):
 
                 payment = self.env["account.payment"].browse(prel['payment_id']).filtered(lambda x: x.state != "draft")
 
-                if payment.journal_id.payment_form == 'cash':
-                    commun_data['MONTOS_PAGADOS_EFECTIVO'] += payment.amount
-                elif payment.journal_id.payment_form == 'bank':
-                    commun_data['MONTOS_PAGADOS_BANCO'] += payment.amount
-                elif payment.journal_id.payment_form == 'card':
-                    commun_data['MONTOS_PAGADOS_TARJETAS'] += payment.amount
-                elif payment.journal_id.payment_form == 'credit': # just in case they have a journal of credit
-                    commun_data['MONTOS_A_CREDITO'] += payment.amount
-                elif payment.journal_id.payment_form == 'bond':
-                    commun_data['MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS'] += payment.amount
-                elif payment.journal_id.payment_form == 'swap':
-                    commun_data['MONTOS_EN_PERMUTA']  += payment.amount
+                '''
+                    payment.amount could be the amount paid for many invoices    
+                '''
+                invoices_paid = payment._get_invoices() #back01
+
+                if len(invoices_paid) > 1:
+                    for invoice_paid in invoices_paid:
+                        if invoice.id == invoice_paid.id:
+                            amount_paid = invoice_paid.amount_total_signed
                 else:
-                    commun_data['MONTOS_EN_OTRAS_FORMAS_VENTAS'] += payment.amount # like Bitcoin and others
+                    amount_paid = payment.amount
+
+                if payment.journal_id.payment_form == 'cash':
+                    commun_data['MONTOS_PAGADOS_EFECTIVO'] += amount_paid
+                elif payment.journal_id.payment_form == 'bank':
+                    commun_data['MONTOS_PAGADOS_BANCO'] += amount_paid
+                elif payment.journal_id.payment_form == 'card':
+                    commun_data['MONTOS_PAGADOS_TARJETAS'] += amount_paid
+                elif payment.journal_id.payment_form == 'credit': # just in case they have a journal of credit
+                    commun_data['MONTOS_A_CREDITO'] += amount_paid
+                elif payment.journal_id.payment_form == 'bond':
+                    commun_data['MONTOS_EN_BONOS_O_CERTIFICADOS_REGALOS'] += amount_paid
+                elif payment.journal_id.payment_form == 'swap':
+                    commun_data['MONTOS_EN_PERMUTA']  += amount_paid
+                else:
+                    commun_data['MONTOS_EN_OTRAS_FORMAS_VENTAS'] += amount_paid # like Bitcoin and others
 
             '''
                 This is not going to 607 report or any model,
