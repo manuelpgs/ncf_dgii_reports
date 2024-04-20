@@ -1281,7 +1281,6 @@ class DgiiReport(models.Model):
 
             if untaxed_move_lines:
                 if invoice_id.type in ("out_invoice", "out_refund"):
-                    _logger.warning("untaxed_move_lines: %s" % (untaxed_move_lines))
                     if not sale_except_tax_id in [t.tax_id for t in invoice_id.tax_line_ids]:
                         invoice_id.write({"tax_line_ids": [(0, 0, {"tax_id": sale_except_tax_id.id,
                                                                    "name": sale_except_tax_id.name,
