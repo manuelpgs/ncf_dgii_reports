@@ -436,10 +436,10 @@ class DgiiReport(models.Model):
             if not error_list.get(invoice_id.id, False):
                 error_list.update(
                     {invoice_id.id: [
-                        (invoice_id.type, invoice_id.number, error_msg)]})
+                        (invoice_id.type, invoice_id.number, error_msg + ', id: ' + str(invoice_id.id))]})
             else:
                 error_list[invoice_id.id].append(
-                    (invoice_id.type, invoice_id.number, error_msg))
+                    (invoice_id.type, invoice_id.number, error_msg + ', id: ' + str(invoice_id.id)))
         return error_list
 
 
@@ -968,7 +968,7 @@ class DgiiReport(models.Model):
                 '''
                     payment.amount could be the amount paid for many invoices    
                 '''
-                invoices_paid = payment._get_invoices() #back01
+                invoices_paid = payment._get_invoices()
 
                 if len(invoices_paid) > 1:
                     for invoice_paid in invoices_paid:
@@ -1259,6 +1259,7 @@ class DgiiReport(models.Model):
             untaxed_lines = invoice_id.invoice_line_ids.filtered(lambda x: x.invoice_line_tax_ids[0].id in untax_ids)
 
             untaxed_move_lines = []
+            total_amount_in_account_movile_line_for_untaxed_invoice_with_many_lines = 0
             for untaxed_line in untaxed_lines:
                 if invoice_id.type in ("in_invoice", 'out_refund'):
                     domain = [('move_id', '=', invoice_id.move_id.id), ('product_id', '=', untaxed_line.product_id.id),
@@ -1267,12 +1268,20 @@ class DgiiReport(models.Model):
                     domain = [('move_id', '=', invoice_id.move_id.id), ('product_id', '=', untaxed_line.product_id.id),
                               ('credit', '=', abs(untaxed_line.price_subtotal_signed))]
 
+                    if invoice_id.type in ("out_invoice"):
+                        total_amount_in_account_movile_line_for_untaxed_invoice_with_many_lines += untaxed_line.price_subtotal_signed
+                        domain = [('move_id', '=', invoice_id.move_id.id), ('product_id', '=', untaxed_line.product_id.id),
+                                ('credit', '=', abs(total_amount_in_account_movile_line_for_untaxed_invoice_with_many_lines))]
+
+
                 move_lines = self.env["account.move.line"].search(domain)
+
                 if move_lines:
                     untaxed_move_lines.append(move_lines)
 
             if untaxed_move_lines:
                 if invoice_id.type in ("out_invoice", "out_refund"):
+                    _logger.warning("untaxed_move_lines: %s" % (untaxed_move_lines))
                     if not sale_except_tax_id in [t.tax_id for t in invoice_id.tax_line_ids]:
                         invoice_id.write({"tax_line_ids": [(0, 0, {"tax_id": sale_except_tax_id.id,
                                                                    "name": sale_except_tax_id.name,
@@ -1291,8 +1300,6 @@ class DgiiReport(models.Model):
             taxed_lines = invoice_id.invoice_line_ids.filtered(lambda x: x.invoice_line_tax_ids[0].id not in untax_ids)
 
             taxed_lines_name = [rec.product_id.id for rec in taxed_lines] # return an array of ids de products
-
-            # _logger.warning("************* taxed_lines_name: %s" % taxed_lines_name)
 
             if commun_data["MONTO_FACTURADO_EXCENTO"]:
                 taxed_lines_amount = self.env["account.move.line"].search(
